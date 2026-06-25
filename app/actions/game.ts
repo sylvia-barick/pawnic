@@ -1,5 +1,5 @@
 'use server'
-
+// PAWnic game server actions — no Supabase Auth required
 import { createClient } from '@/lib/supabase/client-server'
 import { PowerType, POWER_CATALOG } from '@/lib/types'
 
