@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'RUGATO – Hold. Pass. Survive.',
-  description: 'Web3 multiplayer party game on Stellar. Hold the bomb, earn points, survive the explosion.',
+  title: 'PAWnic – Hold. Pass. Survive.',
+  description: 'Real-time multiplayer party game. Pass the potato bomb, earn points, survive the explosion. Last cat standing wins.',
   generator: 'v0.app',
 }
 

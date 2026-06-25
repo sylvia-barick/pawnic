@@ -161,6 +161,17 @@
   background-size: 40px 40px;
 }
 
+/* PAWnic brand color */
+.text-brand { color: oklch(0.70 0.22 45); }
+.text-brand-glow {
+  color: oklch(0.70 0.22 45);
+  text-shadow: 0 0 12px oklch(0.70 0.22 45), 0 0 30px oklch(0.70 0.22 45 / 60%);
+}
+.border-brand { border-color: oklch(0.70 0.22 45 / 60%); }
+.glow-brand {
+  box-shadow: 0 0 12px oklch(0.70 0.22 45 / 70%), 0 0 30px oklch(0.70 0.22 45 / 30%);
+}
+
 /* Animations */
 @keyframes pulse-red {
   0%, 100% { box-shadow: 0 0 8px oklch(0.62 0.26 22 / 60%), 0 0 20px oklch(0.62 0.26 22 / 30%); }
