@@ -1,0 +1,225 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-orbitron), 'Orbitron Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-rajdhani), 'Rajdhani Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
+
+  /* RUGATO Cyberpunk Color Palette */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Neon game colors */
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-red: var(--neon-red);
+  --color-neon-purple: var(--neon-purple);
+  --color-neon-cyan: var(--neon-cyan);
+  --color-panel: var(--panel);
+  --color-panel-border: var(--panel-border);
+  --color-glass: var(--glass);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Deep cyberpunk background - near black with purple tint */
+  --background: oklch(0.08 0.02 280);
+  --foreground: oklch(0.95 0.01 220);
+
+  /* Cards - dark glass panels */
+  --card: oklch(0.12 0.03 270);
+  --card-foreground: oklch(0.95 0.01 220);
+
+  --popover: oklch(0.10 0.03 270);
+  --popover-foreground: oklch(0.95 0.01 220);
+
+  /* Primary - neon blue */
+  --primary: oklch(0.65 0.22 240);
+  --primary-foreground: oklch(0.05 0.01 240);
+
+  /* Secondary - deep purple */
+  --secondary: oklch(0.18 0.06 280);
+  --secondary-foreground: oklch(0.90 0.05 240);
+
+  /* Muted */
+  --muted: oklch(0.15 0.04 270);
+  --muted-foreground: oklch(0.55 0.06 240);
+
+  /* Accent - glowing red */
+  --accent: oklch(0.55 0.22 25);
+  --accent-foreground: oklch(0.98 0 0);
+
+  /* Destructive - bright red */
+  --destructive: oklch(0.62 0.26 22);
+
+  /* Borders - subtle purple glow */
+  --border: oklch(0.30 0.08 270 / 50%);
+  --input: oklch(0.20 0.05 270 / 60%);
+  --ring: oklch(0.65 0.22 240 / 60%);
+
+  --radius: 0.5rem;
+
+  /* Game-specific tokens */
+  --neon-blue: oklch(0.65 0.22 240);
+  --neon-red: oklch(0.62 0.26 22);
+  --neon-purple: oklch(0.55 0.20 300);
+  --neon-cyan: oklch(0.80 0.18 195);
+  --panel: oklch(0.11 0.03 275 / 85%);
+  --panel-border: oklch(0.38 0.12 270 / 40%);
+  --glass: oklch(0.15 0.04 270 / 50%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body), sans-serif;
+  }
+  html {
+    @apply bg-background;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(0.08 0.02 280);
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.35 0.10 270);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.18 240);
+}
+
+/* Neon glow utilities */
+.neon-blue {
+  text-shadow: 0 0 8px oklch(0.65 0.22 240), 0 0 20px oklch(0.65 0.22 240 / 50%);
+}
+.neon-red {
+  text-shadow: 0 0 8px oklch(0.62 0.26 22), 0 0 20px oklch(0.62 0.26 22 / 50%);
+}
+.neon-purple {
+  text-shadow: 0 0 8px oklch(0.55 0.20 300), 0 0 20px oklch(0.55 0.20 300 / 50%);
+}
+.neon-cyan {
+  text-shadow: 0 0 8px oklch(0.80 0.18 195), 0 0 20px oklch(0.80 0.18 195 / 50%);
+}
+
+.glow-blue {
+  box-shadow: 0 0 12px oklch(0.65 0.22 240 / 60%), 0 0 30px oklch(0.65 0.22 240 / 25%);
+}
+.glow-red {
+  box-shadow: 0 0 12px oklch(0.62 0.26 22 / 80%), 0 0 30px oklch(0.62 0.26 22 / 40%);
+}
+.glow-purple {
+  box-shadow: 0 0 12px oklch(0.55 0.20 300 / 60%), 0 0 30px oklch(0.55 0.20 300 / 25%);
+}
+
+.glass-panel {
+  background: oklch(0.11 0.03 275 / 80%);
+  border: 1px solid oklch(0.38 0.12 270 / 35%);
+  backdrop-filter: blur(12px);
+}
+
+/* Grid background */
+.cyber-grid {
+  background-image:
+    linear-gradient(oklch(0.35 0.10 270 / 15%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.35 0.10 270 / 15%) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Animations */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 8px oklch(0.62 0.26 22 / 60%), 0 0 20px oklch(0.62 0.26 22 / 30%); }
+  50% { box-shadow: 0 0 20px oklch(0.62 0.26 22 / 90%), 0 0 40px oklch(0.62 0.26 22 / 60%); }
+}
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 8px oklch(0.65 0.22 240 / 50%), 0 0 20px oklch(0.65 0.22 240 / 20%); }
+  50% { box-shadow: 0 0 20px oklch(0.65 0.22 240 / 80%), 0 0 40px oklch(0.65 0.22 240 / 50%); }
+}
+@keyframes bomb-bounce {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  25% { transform: translateY(-8px) scale(1.04); }
+  75% { transform: translateY(4px) scale(0.97); }
+}
+@keyframes bomb-pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px oklch(0.62 0.26 22 / 80%)) drop-shadow(0 0 30px oklch(0.62 0.26 22 / 40%)); }
+  50% { filter: drop-shadow(0 0 25px oklch(0.62 0.26 22)) drop-shadow(0 0 60px oklch(0.62 0.26 22 / 70%)); }
+}
+@keyframes spark {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+@keyframes screen-flash {
+  0% { opacity: 0; }
+  10% { opacity: 0.6; }
+  30% { opacity: 0; }
+  45% { opacity: 0.3; }
+  60% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes explosion-text {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.3); opacity: 1; }
+  80% { transform: scale(1.0); opacity: 1; }
+  100% { transform: scale(1.0); opacity: 0; }
+}
+@keyframes float-coin {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+  50% { transform: translateY(-15px) rotate(180deg); opacity: 1; }
+}
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes warning-border {
+  0%, 100% { border-color: oklch(0.62 0.26 22 / 80%); }
+  50% { border-color: oklch(0.62 0.26 22); }
+}
+
+.animate-pulse-red { animation: pulse-red 1.2s ease-in-out infinite; }
+.animate-pulse-blue { animation: pulse-blue 2s ease-in-out infinite; }
+.animate-bomb-bounce { animation: bomb-bounce 1.8s ease-in-out infinite; }
+.animate-bomb-pulse { animation: bomb-pulse 1.2s ease-in-out infinite; }
+.animate-screen-flash { animation: screen-flash 0.8s ease-out forwards; }
+.animate-explosion { animation: explosion-text 1.5s ease-out forwards; }
+.animate-float-coin { animation: float-coin 3s ease-in-out infinite; }
+.animate-ticker { animation: ticker 20s linear infinite; }
+.animate-warning-border { animation: warning-border 0.6s ease-in-out infinite; }
