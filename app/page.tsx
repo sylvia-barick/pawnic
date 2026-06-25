@@ -2,15 +2,25 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { signInAnon, createRoom, joinRoom } from '@/app/actions/game'
+import { createRoom, joinRoom } from '@/app/actions/game'
 import { AVATARS } from '@/lib/types'
 import { PawLogo } from '@/components/pawnic/paw-logo'
 
 const ADJECTIVES = ['Sneaky', 'Fluffy', 'Grumpy', 'Speedy', 'Tiny', 'Jumpy', 'Dizzy', 'Fuzzy', 'Wacky', 'Sly']
-const NOUNS      = ['Paw', 'Claw', 'Purr', 'Meow', 'Hiss', 'Nip', 'Flop', 'Zap', 'Bop', 'Yowl']
+const NOUNS = ['Paw', 'Claw', 'Purr', 'Meow', 'Hiss', 'Nip', 'Flop', 'Zap', 'Bop', 'Yowl']
+
 function randomNickname() {
   return ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)] +
     NOUNS[Math.floor(Math.random() * NOUNS.length)]
+}
+
+function getOrCreateUserId(): string {
+  let id = localStorage.getItem('pawnic_user_id')
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem('pawnic_user_id', id)
+  }
+  return id
 }
 
 export default function LandingPage() {
@@ -21,21 +31,18 @@ export default function LandingPage() {
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [isPending, startTransition] = useTransition()
-  const [authed, setAuthed] = useState(false)
 
   useEffect(() => {
     setNickname(randomNickname())
-    signInAnon().then(({ error }) => {
-      if (error) setError('Auth failed: ' + error)
-      else setAuthed(true)
-    })
+    getOrCreateUserId() // ensure UUID is seeded
   }, [])
 
   function handleCreate() {
     if (!nickname.trim()) { setError('Enter a nickname'); return }
     setError('')
     startTransition(async () => {
-      const result = await createRoom(nickname.trim(), avatar)
+      const userId = getOrCreateUserId()
+      const result = await createRoom(userId, nickname.trim(), avatar)
       if ('error' in result && result.error) { setError(result.error); return }
       if ('code' in result && result.code) router.push(`/room/${result.code}`)
     })
@@ -46,14 +53,15 @@ export default function LandingPage() {
     if (!joinCode.trim()) { setError('Enter a room code'); return }
     setError('')
     startTransition(async () => {
-      const result = await joinRoom(joinCode.trim(), nickname.trim(), avatar)
+      const userId = getOrCreateUserId()
+      const result = await joinRoom(userId, joinCode.trim(), nickname.trim(), avatar)
       if ('error' in result && result.error) { setError(result.error); return }
       if ('code' in result && result.code) router.push(`/room/${result.code}`)
     })
   }
 
   return (
-    <main className="min-h-screen cyber-grid flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background">
+    <main className="min-h-screen cyber-grid flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background font-sans">
       {/* Ambient glows */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, oklch(0.70 0.22 45 / 8%) 0%, transparent 70%)' }} />
@@ -81,7 +89,7 @@ export default function LandingPage() {
               onClick={() => setTab(t)}
               className={`flex-1 py-3.5 text-xs font-display font-bold tracking-widest uppercase transition-all ${
                 tab === t
-                  ? 'text-brand-glow border-b-2 border-b-[oklch(0.70_0.22_45)]'
+                  ? 'text-brand-glow border-b-2 border-[oklch(0.70_0.22_45)]'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -93,7 +101,9 @@ export default function LandingPage() {
         <div className="p-6 space-y-5">
           {/* Avatar */}
           <div>
-            <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">Avatar</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">
+              Avatar
+            </label>
             <div className="flex flex-wrap gap-2">
               {AVATARS.map(a => (
                 <button
@@ -113,22 +123,29 @@ export default function LandingPage() {
 
           {/* Nickname */}
           <div>
-            <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">Nickname</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">
+              Nickname
+            </label>
             <input
               value={nickname}
               onChange={e => setNickname(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') tab === 'create' ? handleCreate() : handleJoin() }}
               maxLength={20}
-              placeholder="Your name..."
+              placeholder="Your cat name..."
               className="w-full bg-[oklch(0.10_0.03_270)] border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.70_0.22_45/70%)] transition-colors"
             />
           </div>
 
+          {/* Room code (join tab) */}
           {tab === 'join' && (
             <div>
-              <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">Room Code</label>
+              <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">
+                Room Code
+              </label>
               <input
                 value={joinCode}
                 onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                onKeyDown={e => { if (e.key === 'Enter') handleJoin() }}
                 maxLength={6}
                 placeholder="ABC123"
                 className="w-full bg-[oklch(0.10_0.03_270)] border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.70_0.22_45/70%)] transition-colors font-display text-xl tracking-[0.3em] text-center uppercase"
@@ -136,15 +153,21 @@ export default function LandingPage() {
             </div>
           )}
 
-          {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-400 text-center py-1 px-3 bg-red-400/10 rounded-lg border border-red-400/30">
+              {error}
+            </p>
+          )}
 
           <button
             onClick={tab === 'create' ? handleCreate : handleJoin}
-            disabled={isPending || !authed}
+            disabled={isPending}
             className="w-full py-4 rounded-xl font-display font-black text-sm tracking-widest uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed text-black"
             style={{ background: 'oklch(0.70 0.22 45)', boxShadow: '0 0 24px oklch(0.70 0.22 45 / 60%)' }}
           >
-            {isPending ? 'Loading...' : !authed ? 'Connecting...' : tab === 'create' ? 'Create Room' : 'Join Room'}
+            {isPending
+              ? (tab === 'create' ? 'Creating...' : 'Joining...')
+              : (tab === 'create' ? 'Create Room' : 'Join Room')}
           </button>
         </div>
       </div>

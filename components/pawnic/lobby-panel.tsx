@@ -9,30 +9,31 @@ interface Props {
   room: Room | null
   players: Player[]
   myPlayer: Player | null
+  userId: string
 }
 
-export function LobbyPanel({ room, players, myPlayer }: Props) {
+export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [msg, setMsg] = useState('')
 
   if (!room) return null
 
-  const isHost = room.host_id === myPlayer?.user_id
+  const isHost = room.host_id === userId
   const alivePlayers = players.filter(p => p.is_alive)
   const canStart = isHost && room.status === 'waiting' && players.length >= 2
 
   function handleStart() {
     setMsg('')
     startTransition(async () => {
-      const res = await startGame(room!.id)
+      const res = await startGame(userId, room!.id)
       if (res.error) setMsg(res.error)
     })
   }
 
   function handleLeave() {
     startTransition(async () => {
-      await leaveRoom(room!.id)
+      await leaveRoom(userId, room!.id)
       router.push('/')
     })
   }
@@ -41,43 +42,40 @@ export function LobbyPanel({ room, players, myPlayer }: Props) {
 
   return (
     <div className="flex flex-col gap-2 h-full">
-      {/* Room card */}
+      {/* Room info card */}
       <div className="glass-panel rounded-xl p-3">
         <div className="flex items-center justify-between mb-3">
           <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">Room</span>
-          <span
-            className={`font-display text-xs uppercase px-2 py-0.5 rounded-full tracking-wider ${
-              room.status === 'playing'
-                ? 'bg-[oklch(0.65_0.22_145/20%)] text-[oklch(0.65_0.22_145)]'
-                : room.status === 'finished'
-                ? 'bg-[oklch(0.62_0.26_22/20%)] text-[oklch(0.62_0.26_22)]'
-                : 'bg-[oklch(0.80_0.18_195/15%)] text-[oklch(0.80_0.18_195)]'
-            }`}
-          >
+          <span className={`font-display text-xs uppercase px-2 py-0.5 rounded-full tracking-wider ${
+            room.status === 'playing'
+              ? 'bg-[oklch(0.65_0.22_145/20%)] text-[oklch(0.65_0.22_145)]'
+              : room.status === 'finished'
+              ? 'bg-[oklch(0.62_0.26_22/20%)] text-[oklch(0.62_0.26_22)]'
+              : 'bg-[oklch(0.80_0.18_195/15%)] text-[oklch(0.80_0.18_195)]'
+          }`}>
             {room.status}
           </span>
         </div>
-
         <div className="space-y-1.5 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Code</span>
-            <span className="font-display font-bold tracking-widest text-brand-glow">{room.code}</span>
+            <span className="font-display font-bold tracking-widest text-brand-glow select-all">{room.code}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Players</span>
             <span className="text-foreground">{players.length} / 8</span>
           </div>
           {room.status === 'playing' && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Round</span>
-              <span className="text-foreground">{room.round_number}</span>
-            </div>
-          )}
-          {room.status === 'playing' && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Alive</span>
-              <span className="text-[oklch(0.65_0.22_145)]">{alivePlayers.length}</span>
-            </div>
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Round</span>
+                <span className="text-foreground">{room.round_number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Alive</span>
+                <span className="text-[oklch(0.65_0.22_145)]">{alivePlayers.length}</span>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -88,42 +86,34 @@ export function LobbyPanel({ room, players, myPlayer }: Props) {
         <div className="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1">
           {sortedPlayers.map((p, i) => {
             const hasBomb = room.bomb_holder_id === p.id
-            const isMe = p.user_id === myPlayer?.user_id
-
+            const isMe = p.user_id === userId
             return (
               <div
                 key={p.id}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all ${
-                  hasBomb ? 'bg-[oklch(0.62_0.26_22/20%)] border border-[oklch(0.62_0.26_22/50%)]' :
-                  isMe ? 'bg-[oklch(0.70_0.22_45/10%)] border border-[oklch(0.70_0.22_45/30%)]' :
-                  'bg-[oklch(0.12_0.03_270/60%)]'
+                  hasBomb
+                    ? 'bg-[oklch(0.62_0.26_22/20%)] border border-[oklch(0.62_0.26_22/50%)]'
+                    : isMe
+                    ? 'bg-[oklch(0.70_0.22_45/10%)] border border-[oklch(0.70_0.22_45/30%)]'
+                    : 'bg-[oklch(0.12_0.03_270/60%)]'
                 } ${!p.is_alive ? 'opacity-40' : ''}`}
               >
-                {/* Rank */}
                 <span className="text-muted-foreground font-display text-xs w-3 shrink-0">
                   {room.status !== 'waiting' ? i + 1 : ''}
                 </span>
-                {/* Avatar */}
                 <span className="text-base leading-none shrink-0">{p.avatar}</span>
-                {/* Name */}
                 <div className="flex-1 min-w-0">
                   <p className={`text-xs font-bold truncate leading-none ${isMe ? 'text-brand-glow' : 'text-foreground'}`}>
                     {p.nickname}
-                    {isMe && <span className="text-muted-foreground font-normal"> (you)</span>}
+                    {isMe && <span className="text-muted-foreground font-normal ml-1">(you)</span>}
                     {room.host_id === p.user_id && <span className="ml-1 text-yellow-400 text-[10px]">★</span>}
                   </p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">{p.points} pts</p>
                 </div>
-                {/* Bomb */}
-                {hasBomb && (
-                  <span className="text-base animate-bomb-bounce shrink-0" title="Has the bomb">🥔</span>
-                )}
-                {/* Frozen */}
-                {p.is_frozen && <span className="text-xs" title="Frozen">❄️</span>}
-                {/* Shield */}
-                {p.shield_active && <span className="text-xs" title="Shield active">🛡️</span>}
-                {/* Dead */}
-                {!p.is_alive && <span className="text-xs">💀</span>}
+                {hasBomb && <span className="text-base animate-bomb-bounce shrink-0" title="Has the bomb">🥔</span>}
+                {p.is_frozen && <span className="text-xs shrink-0">❄️</span>}
+                {p.shield_active && <span className="text-xs shrink-0">🛡️</span>}
+                {!p.is_alive && <span className="text-xs shrink-0">💀</span>}
               </div>
             )
           })}
@@ -132,21 +122,24 @@ export function LobbyPanel({ room, players, myPlayer }: Props) {
 
       {/* Actions */}
       <div className="space-y-2 shrink-0">
-        {msg && <p className="text-xs text-red-400 text-center">{msg}</p>}
+        {msg && <p className="text-xs text-red-400 text-center bg-red-400/10 px-2 py-1 rounded">{msg}</p>}
 
         {room.status === 'waiting' && isHost && (
           <button
             onClick={handleStart}
             disabled={!canStart || isPending}
             className="w-full py-3 rounded-xl font-display font-black text-xs tracking-widest uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed text-black"
-            style={{ background: 'oklch(0.70 0.22 45)', boxShadow: canStart ? '0 0 16px oklch(0.70 0.22 45 / 50%)' : 'none' }}
+            style={{
+              background: 'oklch(0.70 0.22 45)',
+              boxShadow: canStart ? '0 0 16px oklch(0.70 0.22 45 / 50%)' : 'none',
+            }}
           >
             {isPending ? 'Starting...' : players.length < 2 ? 'Need 2+ Players' : 'Start Game'}
           </button>
         )}
 
         {room.status === 'waiting' && !isHost && (
-          <div className="text-center text-xs text-muted-foreground font-display py-2 uppercase tracking-widest">
+          <div className="text-center text-xs text-muted-foreground font-display py-2 uppercase tracking-widest animate-pulse">
             Waiting for host...
           </div>
         )}
