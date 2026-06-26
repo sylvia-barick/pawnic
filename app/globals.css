@@ -125,36 +125,36 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Neon Panel Custom Borders & Glowing Shadows */
+/* Neon Panel Custom Borders & Bold Solid Shadows */
 .glass-panel {
-  background: rgba(14, 14, 24, 0.85) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4) !important;
-  border-radius: 14px !important;
+  background: #0E0E18 !important;
+  backdrop-filter: none !important;
+  border: 3px solid #FFFFFF !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
+  border-radius: 12px !important;
   color: #F8FAFC !important;
 }
 
-/* Specific glows for different cards matching the reference image */
+/* Bold colored borders with solid offset shadows */
 .glow-orange {
-  border: 1px solid rgba(255, 95, 31, 0.25) !important;
-  box-shadow: 0 0 15px rgba(255, 95, 31, 0.06), inset 0 0 12px rgba(255, 95, 31, 0.02) !important;
+  border: 3px solid #FF5F1F !important;
+  box-shadow: 4px 4px 0px 0px #FF5F1F !important;
 }
 .glow-purple {
-  border: 1px solid rgba(168, 85, 247, 0.25) !important;
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.06), inset 0 0 12px rgba(168, 85, 247, 0.02) !important;
+  border: 3px solid #A855F7 !important;
+  box-shadow: 4px 4px 0px 0px #A855F7 !important;
 }
 .glow-blue {
-  border: 1px solid rgba(59, 130, 246, 0.25) !important;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.06), inset 0 0 12px rgba(59, 130, 246, 0.02) !important;
+  border: 3px solid #3B82F6 !important;
+  box-shadow: 4px 4px 0px 0px #3B82F6 !important;
 }
 .glow-red {
-  border: 1px solid rgba(255, 0, 127, 0.3) !important;
-  box-shadow: 0 0 18px rgba(255, 0, 127, 0.08), inset 0 0 12px rgba(255, 0, 127, 0.03) !important;
+  border: 3px solid #FF007F !important;
+  box-shadow: 4px 4px 0px 0px #FF007F !important;
 }
 .glow-cyan {
-  border: 1px solid rgba(6, 182, 212, 0.25) !important;
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.06), inset 0 0 12px rgba(6, 182, 212, 0.02) !important;
+  border: 3px solid #06B6D4 !important;
+  box-shadow: 4px 4px 0px 0px #06B6D4 !important;
 }
 
 /* Grid Background */
@@ -172,142 +172,147 @@
   font-weight: 800 !important;
 }
 .text-brand-glow {
-  color: #FFFFFF !important;
+  color: #FF5F1F !important;
   font-weight: 900 !important;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+  text-shadow: none !important;
 }
 
 /* General interactive overrides */
 input {
-  background-color: rgba(255, 255, 255, 0.03) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: #06060A !important;
+  border: 3px solid #FFFFFF !important;
   color: #FFFFFF !important;
   border-radius: 8px !important;
   padding: 10px 16px !important;
-  transition: all 0.2s ease;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
+  font-weight: 700 !important;
+  transition: all 0.1s ease;
 }
 input:focus {
   outline: none !important;
-  border-color: rgba(255, 95, 31, 0.5) !important;
-  box-shadow: 0 0 10px rgba(255, 95, 31, 0.15) !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: #FF5F1F !important;
+  box-shadow: 3px 3px 0px 0px #FF5F1F !important;
 }
 
-/* Buttons in the dark neon theme */
+/* Buttons in the dark pop theme */
 button {
   font-family: 'Space Grotesk', sans-serif !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.1s ease !important;
   cursor: pointer;
 }
 button:active:not([disabled]) {
-  transform: scale(0.97) !important;
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px 0px #000000 !important;
 }
 
-/* Orange Glow Buttons (Create Room, Start Game, Buy in mockup) */
+/* Orange Pop Buttons (Create Room, Start Game, Buy in mockup) */
 button[style*="background: #FF5F1F"],
 button[style*="background:#FF5F1F"],
 button[class*="bg-[oklch(0.70"],
 button[class*="bg-[oklch(0.70_0.22_45)"] {
   background: #FF5F1F !important;
-  border: 1px solid #FF5F1F !important;
-  box-shadow: 0 0 12px rgba(255, 95, 31, 0.3) !important;
-  color: #FFFFFF !important;
-  font-weight: 700 !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
   border-radius: 8px !important;
+  text-shadow: none !important;
 }
 button[style*="background: #FF5F1F"]:hover,
 button[style*="background:#FF5F1F"]:hover {
   background: #ff733b !important;
-  box-shadow: 0 0 18px rgba(255, 95, 31, 0.5) !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
 }
 
 /* Secondary header styling */
 header.glass-panel {
-  background: rgba(14, 14, 24, 0.8) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  background: #FFE234 !important; /* Bold yellow nav header */
+  border-bottom: 3px solid #000000 !important;
+  box-shadow: 0px 4px 0px 0px #000000 !important;
   border-radius: 0px !important;
-  height: 58px !important;
+  height: 54px !important;
 }
 
 /* Segmented selector tabs */
 .glass-panel > div.flex.border-b {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 3px solid #000000 !important;
   background: rgba(255, 255, 255, 0.02) !important;
 }
 .glass-panel > div.flex.border-b > button {
   border: none !important;
   box-shadow: none !important;
   border-radius: 0px !important;
-  font-weight: 700 !important;
+  font-weight: 900 !important;
   color: #94A3B8 !important;
   transition: all 0.2s;
-  border-bottom: 2px solid transparent !important;
+  border-bottom: 3px solid transparent !important;
 }
 .glass-panel > div.flex.border-b > button[class*="text-brand-glow"],
 .glass-panel > div.flex.border-b > button:hover {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
   color: #FF5F1F !important;
-  border-bottom: 2px solid #FF5F1F !important;
+  border-bottom: 3px solid #FF5F1F !important;
 }
 
 /* Sidebar List Roster items */
 .glass-panel div[class*="bg-[oklch(0.12_0.03_270/60%)]"],
 .glass-panel div[class*="bg-[oklch(0.12_0.03_270"] {
-  background-color: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background-color: #0E0E18 !important;
+  border: 2px solid #000000 !important;
   color: #FFFFFF !important;
   border-radius: 8px !important;
-  box-shadow: none !important;
+  box-shadow: 2px 2px 0px 0px #000000 !important;
 }
 /* Active bomb holder item in list */
 .glass-panel div[class*="bg-[oklch(0.62_0.26_22/20%)]"] {
-  background-color: rgba(255, 0, 127, 0.08) !important;
-  border: 1px solid rgba(255, 0, 127, 0.3) !important;
-  box-shadow: 0 0 10px rgba(255, 0, 127, 0.05) !important;
+  background-color: rgba(255, 0, 127, 0.15) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 2px 2px 0px 0px #FF007F !important;
 }
 /* My player item in list */
 .glass-panel div[class*="bg-[oklch(0.70_0.22_45/10%)]"] {
-  background-color: rgba(255, 95, 31, 0.08) !important;
-  border: 1px solid rgba(255, 95, 31, 0.3) !important;
-  box-shadow: 0 0 10px rgba(255, 95, 31, 0.05) !important;
+  background-color: rgba(255, 95, 31, 0.15) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 2px 2px 0px 0px #FF5F1F !important;
 }
 
 /* Power shop Buy button styles in shop */
 button[style*="color: oklch(0.70 0.22 45)"],
 button[style*="color:oklch(0.70 0.22 45)"] {
-  background-color: transparent !important;
-  color: #FF007F !important;
-  border: 1px solid rgba(255, 0, 127, 0.4) !important;
-  box-shadow: 0 0 8px rgba(255, 0, 127, 0.1) !important;
+  background-color: #FF007F !important;
+  color: #FFFFFF !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 2px 2px 0px 0px #000000 !important;
   border-radius: 6px !important;
+  font-weight: 800 !important;
 }
 button[style*="color: oklch(0.70 0.22 45)"]:hover,
 button[style*="color:oklch(0.70 0.22 45)"]:hover {
-  background-color: rgba(255, 0, 127, 0.1) !important;
+  background-color: #ff3399 !important;
 }
 button[style*="color: oklch(0.45 0.06 240)"],
 button[style*="color:oklch(0.45 0.06 240)"] {
-  background-color: rgba(255, 255, 255, 0.01) !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
   color: rgba(255, 255, 255, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 2px solid rgba(255, 255, 255, 0.05) !important;
   box-shadow: none !important;
 }
 /* Use buttons in shop */
 button[style*="color: oklch(0.80 0.18 195)"],
 button[style*="color:oklch(0.80 0.18 195)"] {
-  background-color: rgba(6, 182, 212, 0.1) !important;
-  color: #06B6D4 !important;
-  border: 1px solid rgba(6, 182, 212, 0.4) !important;
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.1) !important;
+  background-color: #06B6D4 !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 2px 2px 0px 0px #000000 !important;
   border-radius: 6px !important;
+  font-weight: 800 !important;
 }
 
 /* Arena card styling */
 .cyber-grid.glass-panel {
-  background-color: rgba(10, 10, 18, 0.9) !important;
-  border: 1px solid rgba(59, 130, 246, 0.2) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  background-color: #0E0E18 !important;
+  border: 3px solid #3B82F6 !important;
+  box-shadow: 5px 5px 0px 0px #3B82F6 !important;
 }
 
 /* Circular player avatars inside arena */
