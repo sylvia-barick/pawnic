@@ -1,23 +1,37 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { buyPower, usePower } from '@/app/actions/game'
-import type { Room, Player, PowerType } from '@/lib/types'
+import { useState, useEffect, useTransition } from 'react'
+import { buyPower } from '@/app/actions/game'
+import type { Room, Player, PowerType, GameEvent } from '@/lib/types'
 import { POWER_CATALOG } from '@/lib/types'
 
 interface Props {
   room: Room | null
   players: Player[]
+  events: GameEvent[]
   myPlayer: Player | null
   userId: string
 }
 
-const POWERS = Object.entries(POWER_CATALOG) as [PowerType, (typeof POWER_CATALOG)[PowerType]][]
+// In the mockup, these 5 abilities are presented in the shop:
+const POWERS: { key: PowerType; name: string; description: string; cost: number; emoji: string }[] = [
+  { key: 'reverse', name: 'Mirror', description: 'Reflect next transfer', cost: 100, emoji: '🔮' },
+  { key: 'freeze', name: 'Freeze', description: 'Freeze target for 3s', cost: 80, emoji: '❄️' },
+  { key: 'double_points', name: 'Catnip', description: '2x score for 10s', cost: 60, emoji: '🌿' },
+  { key: 'speed_pass', name: 'Smoke Screen', description: 'Hide holder for 4s', cost: 70, emoji: '☁️' },
+  { key: 'time_bomb', name: 'Nine Lives', description: 'Survive one explosion', cost: 150, emoji: '🐱' },
+]
 
-export function ShopPanel({ room, players, myPlayer, userId }: Props) {
+export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
   const [isPending, startTransition] = useTransition()
   const [msg, setMsg] = useState('')
-  const [selectingFreeze, setSelectingFreeze] = useState(false)
+  const [, setTick] = useState(0)
+
+  // Force update timestamps every 5 seconds to keep the "time ago" feed live
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 5000)
+    return () => clearInterval(id)
+  }, [])
 
   if (!room || !myPlayer) {
     return (
@@ -27,7 +41,6 @@ export function ShopPanel({ room, players, myPlayer, userId }: Props) {
     )
   }
 
-  const myPowers = (myPlayer.powers ?? {}) as Record<PowerType, number>
   const isPlaying = room.status === 'playing'
 
   function handleBuy(type: PowerType) {
@@ -38,172 +51,142 @@ export function ShopPanel({ room, players, myPlayer, userId }: Props) {
     })
   }
 
-  function handleUse(type: PowerType, targetId?: string) {
-    setMsg('')
-    setSelectingFreeze(false)
-    startTransition(async () => {
-      const res = await usePower(userId, room!.id, type, targetId)
-      if (res.error) setMsg(res.error)
-    })
+  // Format relative timestamp offsets dynamically (e.g. "12s ago", "2m ago")
+  function formatTimeAgo(createdAt: string) {
+    const msDiff = Date.now() - new Date(createdAt).getTime()
+    const seconds = Math.max(0, Math.floor(msDiff / 1000))
+    if (seconds < 60) return `${seconds}s ago`
+    const minutes = Math.floor(seconds / 60)
+    return `${minutes}m ago`
   }
 
-  const alivePlayers = players.filter(p => p.is_alive && p.user_id !== userId)
+  // Helper to resolve an event's styling class and custom icon
+  function resolveEventMeta(ev: GameEvent) {
+    switch (ev.type) {
+      case 'explode':
+        return { emoji: '💥', textColor: 'text-[#FF007F]', textGlow: 'glow-red' }
+      case 'power':
+        if (ev.message.includes('Freeze') || ev.message.includes('froze')) {
+          return { emoji: '❄️', textColor: 'text-[#06B6D4]', textGlow: '' }
+        }
+        if (ev.message.includes('Catnip') || ev.message.includes('Double Points')) {
+          return { emoji: '🌿', textColor: 'text-[#22C55E]', textGlow: '' }
+        }
+        return { emoji: '🔮', textColor: 'text-[#A855F7]', textGlow: '' }
+      case 'pass':
+        return { emoji: '⚡', textColor: 'text-[#FF5F1F]', textGlow: '' }
+      case 'join':
+      case 'start':
+        return { emoji: '🐾', textColor: 'text-foreground', textGlow: '' }
+      default:
+        return { emoji: '⚙️', textColor: 'text-muted-foreground', textGlow: '' }
+    }
+  }
 
   return (
-    <div className="flex flex-col gap-2 h-full">
-      {/* My stats */}
-      <div className="glass-panel rounded-xl p-3 shrink-0">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">Your Stats</span>
-          <span className="text-xl">{myPlayer.avatar}</span>
+    <div className="flex flex-col gap-3 h-full">
+      {/* 1. Room Activity Timeline Log */}
+      <div className="glass-panel glow-purple rounded-xl p-4 flex-1 overflow-hidden flex flex-col min-h-0">
+        <div className="flex items-center gap-2 border-b border-border/50 pb-2 mb-3 shrink-0">
+          <span className="text-xs">📈</span>
+          <span className="font-display text-xs uppercase tracking-widest font-black text-foreground">
+            Room Activity
+          </span>
+          <span className="ml-auto text-[9px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-display font-bold uppercase tracking-wider">
+            Live
+          </span>
         </div>
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Points</span>
-            <span className="font-display font-bold text-brand-glow">{myPlayer.points} pts</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Status</span>
-            <span className={
-              myPlayer.is_frozen ? 'text-[oklch(0.80_0.18_195)]'
-              : myPlayer.shield_active ? 'text-[oklch(0.80_0.22_60)]'
-              : 'text-[oklch(0.65_0.22_145)]'
-            }>
-              {myPlayer.is_frozen ? '❄️ Frozen'
-               : myPlayer.shield_active ? '🛡️ Shielded'
-               : myPlayer.reverse_active ? '↩ Reverse On'
-               : '✓ Ready'}
-            </span>
-          </div>
-          {myPlayer.double_points_until && new Date(myPlayer.double_points_until) > new Date() && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Boost</span>
-              <span className="text-[oklch(0.80_0.22_60)]">×2 Points active</span>
+
+        {/* Dynamic Activity List */}
+        <div className="space-y-3.5 overflow-y-auto flex-1 min-h-0 pr-1 select-none text-left">
+          {events
+            .filter(ev => ev.type !== 'chat') // skip simple chat messages in activity feed
+            .slice(-15)
+            .reverse() // show latest at top
+            .map(ev => {
+              const meta = resolveEventMeta(ev)
+              return (
+                <div key={ev.id} className="flex gap-2.5 items-start text-[11px] leading-tight">
+                  <span className="text-sm shrink-0 leading-none mt-0.5">{meta.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold ${meta.textColor} truncate`}>
+                      {ev.message}
+                    </p>
+                  </div>
+                  <span className="text-[9px] text-muted-foreground shrink-0 mt-0.5 font-mono">
+                    {formatTimeAgo(ev.created_at)}
+                  </span>
+                </div>
+              )
+            })}
+          {events.filter(ev => ev.type !== 'chat').length === 0 && (
+            <div className="text-center py-6 text-xs text-muted-foreground">
+              No activity logged yet.
             </div>
           )}
         </div>
       </div>
 
-      {/* Freeze target selector */}
-      {selectingFreeze && (
-        <div className="glass-panel rounded-xl p-3 border border-[oklch(0.80_0.18_195/50%)] shrink-0">
-          <p className="font-display text-xs uppercase tracking-widest text-[oklch(0.80_0.18_195)] mb-2">
-            Freeze who?
-          </p>
-          <div className="space-y-1">
-            {alivePlayers.map(p => (
-              <button
-                key={p.id}
-                onClick={() => handleUse('freeze', p.id)}
-                disabled={isPending}
-                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs hover:bg-[oklch(0.80_0.18_195/15%)] transition-colors text-left disabled:opacity-50"
-              >
-                <span className="text-base">{p.avatar}</span>
-                <span className="text-foreground font-bold">{p.nickname}</span>
-                <span className="text-muted-foreground ml-auto">{p.points}pts</span>
-              </button>
-            ))}
-            <button
-              onClick={() => setSelectingFreeze(false)}
-              className="w-full text-center text-xs text-muted-foreground hover:text-foreground mt-1 transition-colors py-1"
-            >
-              Cancel
-            </button>
-          </div>
+      {/* 2. Power Shop buy grid */}
+      <div className="glass-panel glow-purple rounded-xl p-4 shrink-0 flex flex-col">
+        <div className="flex items-center gap-2 border-b border-border/50 pb-2 mb-3 shrink-0">
+          <span className="text-xs">🛒</span>
+          <span className="font-display text-xs uppercase tracking-widest font-black text-foreground">
+            Power Shop
+          </span>
         </div>
-      )}
 
-      {/* Power shop */}
-      <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden flex flex-col min-h-0">
-        <span className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2 shrink-0">
-          Power Shop
-        </span>
         {msg && (
-          <p className="text-xs text-red-400 mb-2 shrink-0 bg-red-400/10 px-2 py-1 rounded">{msg}</p>
+          <p className="text-xs text-[#FF007F] bg-[#FF007F]/10 border border-[#FF007F]/20 px-2 py-1 rounded-lg mb-2 text-left font-display">
+            {msg}
+          </p>
         )}
-        <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1">
-          {POWERS.map(([type, info]) => {
-            const owned = myPowers[type] ?? 0
-            const canAfford = myPlayer.points >= info.cost
-            const canBuy = isPlaying && canAfford
+
+        <div className="space-y-2.5">
+          {POWERS.map(item => {
+            const canAfford = myPlayer.points >= item.cost
+            const canBuy = isPlaying && canAfford && !isPending
 
             return (
               <div
-                key={type}
-                className="rounded-lg p-2 bg-[oklch(0.12_0.03_270/60%)] border border-border hover:border-[oklch(0.70_0.22_45/30%)] transition-all"
+                key={item.key}
+                className="flex items-center justify-between gap-2 border border-border/40 rounded-lg p-2 bg-white/2 hover:bg-white/3 transition-all"
               >
-                <div className="flex items-start gap-2 mb-1.5">
-                  <span className="text-xl shrink-0 mt-0.5">{info.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="font-display text-xs font-bold text-foreground">{info.name}</span>
-                      <span className={`font-display text-xs shrink-0 ${canAfford ? 'text-brand-glow' : 'text-muted-foreground'}`}>
-                        {info.cost}pt
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{info.description}</p>
+                <div className="flex items-center gap-2 min-w-0 flex-1 text-left">
+                  <span className="text-xl leading-none shrink-0">{item.emoji}</span>
+                  <div className="min-w-0">
+                    <span className="font-display font-bold text-xs text-foreground block">
+                      {item.name}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground block truncate">
+                      {item.description}
+                    </span>
                   </div>
                 </div>
-                <div className="flex gap-1.5">
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Cost badge */}
+                  <div className="flex items-center gap-0.5 text-xs font-mono font-bold text-[#EAB308]">
+                    <span>{item.cost}</span>
+                    <span className="text-[9px]">🐾</span>
+                  </div>
+
+                  {/* Buy trigger */}
                   <button
-                    onClick={() => handleBuy(type)}
-                    disabled={!canBuy || isPending}
-                    className="flex-1 py-1 rounded text-[10px] font-display font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={canBuy ? {
-                      background: 'oklch(0.70 0.22 45 / 20%)',
-                      border: '1px solid oklch(0.70 0.22 45 / 50%)',
-                      color: 'oklch(0.70 0.22 45)',
-                    } : {
-                      background: 'oklch(0.12 0.03 270)',
-                      border: '1px solid oklch(0.30 0.08 270 / 50%)',
-                      color: 'oklch(0.45 0.06 240)',
-                    }}
+                    onClick={() => handleBuy(item.key)}
+                    disabled={!canBuy}
+                    className={`px-3 py-1 rounded text-[10px] font-display font-black uppercase tracking-wider border transition-all ${
+                      canBuy
+                        ? 'bg-[#FF007F] border-[#FF007F] text-white hover:bg-[#ff1e8e] shadow-[0_0_8px_rgba(255,0,127,0.3)]'
+                        : 'bg-white/1 border-border/10 text-muted-foreground/45 cursor-not-allowed'
+                    }`}
                   >
-                    Buy{owned > 0 ? ` (${owned})` : ''}
+                    Buy
                   </button>
-                  {owned > 0 && (
-                    <button
-                      onClick={() => type === 'freeze' ? setSelectingFreeze(true) : handleUse(type)}
-                      disabled={isPending || !isPlaying}
-                      className="flex-1 py-1 rounded text-[10px] font-display font-bold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{
-                        background: 'oklch(0.65 0.22 240 / 20%)',
-                        border: '1px solid oklch(0.65 0.22 240 / 50%)',
-                        color: 'oklch(0.80 0.18 195)',
-                      }}
-                    >
-                      Use ({owned})
-                    </button>
-                  )}
                 </div>
               </div>
             )
           })}
-        </div>
-      </div>
-
-      {/* Leaderboard */}
-      <div className="glass-panel rounded-xl p-3 shrink-0">
-        <span className="font-display text-xs uppercase tracking-widest text-muted-foreground block mb-2">
-          Leaderboard
-        </span>
-        <div className="space-y-1">
-          {[...players]
-            .sort((a, b) => b.points - a.points)
-            .slice(0, 5)
-            .map((p, i) => (
-              <div key={p.id} className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-display w-4 shrink-0">
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
-                </span>
-                <span className="shrink-0">{p.avatar}</span>
-                <span className={`flex-1 truncate font-bold ${p.user_id === userId ? 'text-brand-glow' : p.is_alive ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
-                  {p.nickname}
-                </span>
-                <span className="font-display font-bold text-brand-glow shrink-0">{p.points}</span>
-                {!p.is_alive && <span className="text-[10px] shrink-0">💀</span>}
-              </div>
-            ))}
         </div>
       </div>
     </div>

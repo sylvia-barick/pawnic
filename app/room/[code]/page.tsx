@@ -50,11 +50,11 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       <GameNavBar code={code} room={room} myPlayer={gameState.myPlayer} />
 
       <main
-        className="flex gap-2 px-2 pb-2 pt-2"
-        style={{ marginTop: '48px', height: 'calc(100dvh - 48px)', overflow: 'hidden' }}
+        className="flex gap-3 px-3 pb-3 pt-3 bg-background"
+        style={{ marginTop: '54px', height: 'calc(100dvh - 54px)', overflow: 'hidden' }}
       >
         {/* Left: room info + player roster */}
-        <div className="w-60 shrink-0 flex flex-col overflow-hidden">
+        <div className="w-72 shrink-0 flex flex-col overflow-hidden">
           <LobbyPanel
             room={room}
             players={gameState.players}
@@ -75,10 +75,11 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         </div>
 
         {/* Right: powers shop + leaderboard */}
-        <div className="w-60 shrink-0 flex flex-col overflow-hidden">
+        <div className="w-80 shrink-0 flex flex-col overflow-hidden">
           <ShopPanel
             room={room}
             players={gameState.players}
+            events={gameState.events}
             myPlayer={gameState.myPlayer}
             userId={gameState.userId}
           />

@@ -61,35 +61,35 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen cyber-grid flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background font-sans">
-      {/* Ambient glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, oklch(0.70 0.22 45 / 8%) 0%, transparent 70%)' }} />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, oklch(0.62 0.26 22 / 6%) 0%, transparent 70%)' }} />
+    <main className="min-h-screen cyber-grid flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background font-sans select-none">
+      {/* Dynamic ambient shadows (no blur glows) */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none bg-[#FF5F1F]/2" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none bg-[#A855F7]/2" />
 
-      {/* Logo */}
-      <div className="flex flex-col items-center gap-3 mb-10">
-        <PawLogo size={72} />
+      {/* Logo Section */}
+      <div className="flex flex-col items-center gap-2.5 mb-8 z-10">
+        <div className="text-5xl animate-bomb-bounce">🐾</div>
         <div className="text-center">
-          <h1 className="font-display text-5xl font-black tracking-widest text-brand-glow">PAWnic</h1>
-          <p className="text-muted-foreground text-sm tracking-widest mt-1 uppercase font-display">
+          <h1 className="font-display text-5xl font-black tracking-widest text-[#F8FAFC]">
+            PAW<span className="text-[#FF5F1F] text-brand-glow">nic</span>
+          </h1>
+          <p className="text-muted-foreground text-[10px] tracking-[0.3em] mt-1.5 uppercase font-display font-semibold">
             Hold. Pass. Survive.
           </p>
         </div>
       </div>
 
-      {/* Card */}
-      <div className="glass-panel rounded-2xl w-full max-w-md glow-brand overflow-hidden">
-        {/* Tabs */}
-        <div className="flex border-b border-border">
+      {/* Roster & Form card */}
+      <div className="glass-panel glow-orange rounded-2xl w-full max-w-md overflow-hidden z-10">
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-border/80">
           {(['create', 'join'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-3.5 text-xs font-display font-bold tracking-widest uppercase transition-all ${
+              className={`flex-1 py-4 text-xs font-display font-bold tracking-widest uppercase transition-all ${
                 tab === t
-                  ? 'text-brand-glow border-b-2 border-[oklch(0.70_0.22_45)]'
+                  ? 'text-[#FF5F1F] border-b-2 border-[#FF5F1F] bg-white/2'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -98,21 +98,21 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <div className="p-6 space-y-5">
-          {/* Avatar */}
+        <div className="p-6 space-y-6">
+          {/* Avatar selector */}
           <div>
-            <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">
-              Avatar
+            <label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-display font-bold block mb-2 text-left">
+              Select Avatar
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5">
               {AVATARS.map(a => (
                 <button
                   key={a}
                   onClick={() => setAvatar(a)}
-                  className={`w-10 h-10 rounded-lg text-xl flex items-center justify-center transition-all border ${
+                  className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all border ${
                     avatar === a
-                      ? 'border-[oklch(0.70_0.22_45/80%)] bg-[oklch(0.70_0.22_45/15%)] scale-110'
-                      : 'border-border bg-[oklch(0.10_0.03_270)] hover:border-[oklch(0.70_0.22_45/40%)]'
+                      ? 'border-[#FF5F1F] bg-[#FF5F1F]/10 scale-105 shadow-[0_0_10px_rgba(255,95,31,0.25)]'
+                      : 'border-border/60 bg-white/2 hover:border-white/20'
                   }`}
                 >
                   {a}
@@ -121,9 +121,9 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Nickname */}
+          {/* Nickname input */}
           <div>
-            <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">
+            <label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-display font-bold block mb-2 text-left">
               Nickname
             </label>
             <input
@@ -131,15 +131,15 @@ export default function LandingPage() {
               onChange={e => setNickname(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') tab === 'create' ? handleCreate() : handleJoin() }}
               maxLength={20}
-              placeholder="Your cat name..."
-              className="w-full bg-[oklch(0.10_0.03_270)] border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.70_0.22_45/70%)] transition-colors"
+              placeholder="Enter your nickname..."
+              className="w-full"
             />
           </div>
 
-          {/* Room code (join tab) */}
+          {/* Join Code (for Join Tab only) */}
           {tab === 'join' && (
             <div>
-              <label className="text-xs uppercase tracking-widest text-muted-foreground font-display block mb-2">
+              <label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground font-display font-bold block mb-2 text-left">
                 Room Code
               </label>
               <input
@@ -148,22 +148,27 @@ export default function LandingPage() {
                 onKeyDown={e => { if (e.key === 'Enter') handleJoin() }}
                 maxLength={6}
                 placeholder="ABC123"
-                className="w-full bg-[oklch(0.10_0.03_270)] border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[oklch(0.70_0.22_45/70%)] transition-colors font-display text-xl tracking-[0.3em] text-center uppercase"
+                className="w-full text-center tracking-[0.25em] font-display font-bold text-lg"
               />
             </div>
           )}
 
           {error && (
-            <p className="text-sm text-red-400 text-center py-1 px-3 bg-red-400/10 rounded-lg border border-red-400/30">
+            <p className="text-xs text-red-500 text-center py-2 px-3 bg-red-500/10 border border-red-500/20 rounded-lg">
               {error}
             </p>
           )}
 
+          {/* Execute Action trigger */}
           <button
             onClick={tab === 'create' ? handleCreate : handleJoin}
             disabled={isPending}
-            className="w-full py-4 rounded-xl font-display font-black text-sm tracking-widest uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed text-black"
-            style={{ background: 'oklch(0.70 0.22 45)', boxShadow: '0 0 24px oklch(0.70 0.22 45 / 60%)' }}
+            className="w-full py-4 rounded-xl font-display font-black text-xs tracking-widest uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white"
+            style={{
+              background: '#FF5F1F',
+              boxShadow: '0 0 20px rgba(255, 95, 31, 0.3)',
+              border: '1px solid #FF5F1F',
+            }}
           >
             {isPending
               ? (tab === 'create' ? 'Creating...' : 'Joining...')
@@ -172,7 +177,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <p className="mt-6 text-xs text-muted-foreground text-center max-w-xs leading-relaxed">
+      <p className="mt-8 text-[10px] text-muted-foreground text-center max-w-xs leading-relaxed uppercase tracking-wider font-display font-bold">
         2–8 players. Pass the potato bomb. Survive the explosion. Last cat standing wins.
       </p>
     </main>

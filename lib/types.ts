@@ -43,12 +43,12 @@ export interface GameEvent {
 }
 
 export const POWER_CATALOG: Record<PowerType, { name: string; description: string; cost: number; emoji: string }> = {
+  reverse:       { name: 'Mirror',        description: 'Reflect next transfer',                cost: 100, emoji: '🔮' },
+  freeze:        { name: 'Freeze',        description: 'Freeze target for 3s',                 cost: 80,  emoji: '❄️' },
+  double_points: { name: 'Catnip',        description: '2x score for 10s',                     cost: 60,  emoji: '🌿' },
+  speed_pass:    { name: 'Smoke Screen',  description: 'Hide holder for 4s',                   cost: 70,  emoji: '☁️' },
+  time_bomb:     { name: 'Nine Lives',    description: 'Survive one explosion',                cost: 150, emoji: '🐱' },
   shield:        { name: 'Shield',        description: 'Bounce the bomb back to sender',       cost: 50,  emoji: '🛡️' },
-  freeze:        { name: 'Freeze',        description: 'Freeze target for 10s (cannot pass)',  cost: 80,  emoji: '❄️' },
-  speed_pass:    { name: 'Speed Pass',    description: 'Pass instantly with no cooldown',       cost: 40,  emoji: '⚡' },
-  double_points: { name: 'Double Points', description: 'Earn 2x points for 15s',               cost: 60,  emoji: '×2' },
-  reverse:       { name: 'Reverse',       description: 'Redirect next incoming bomb',           cost: 70,  emoji: '↩️' },
-  time_bomb:     { name: 'Time Bomb',     description: 'Subtract 15s from explosion timer',     cost: 90,  emoji: '⏱️' },
 }
 
 export const AVATARS = ['🐱', '🐶', '🦊', '🐸', '🐻', '🐼', '🐯', '🐨', '🦁', '🐮']

@@ -1,7 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { PawLogo } from './paw-logo'
 import type { Room, Player } from '@/lib/types'
 
 interface Props {
@@ -10,69 +10,133 @@ interface Props {
   myPlayer: Player | null
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  waiting:  { label: 'Waiting',    color: 'oklch(0.80 0.18 195)' },
-  playing:  { label: 'Live',       color: 'oklch(0.65 0.22 145)' },
-  finished: { label: 'Finished',   color: 'oklch(0.62 0.26 22)'  },
-}
-
 export function GameNavBar({ code, room, myPlayer }: Props) {
-  const status = STATUS_LABELS[room.status] ?? STATUS_LABELS.waiting
+  const [timeLeft, setTimeLeft] = useState<number | null>(null)
+
+  // Countdown timer inside header to drive the danger level
+  useEffect(() => {
+    if (!room?.explosion_at || room.status !== 'playing') {
+      setTimeLeft(null)
+      return
+    }
+    const tick = () => {
+      const ms = new Date(room.explosion_at!).getTime() - Date.now()
+      setTimeLeft(Math.max(0, Math.floor(ms / 1000)))
+    }
+    tick()
+    const id = setInterval(tick, 250)
+    return () => clearInterval(id)
+  }, [room?.explosion_at, room?.status])
+
+  // Compute Danger Level and segment counts based on seconds remaining
+  let dangerText = 'CALM'
+  let dangerColor = 'text-[oklch(0.65_0.22_145)]' // green
+  let filledSegments = 2
+
+  if (room.status === 'playing' && timeLeft !== null) {
+    if (timeLeft > 25) {
+      dangerText = 'CALM'
+      dangerColor = 'text-[oklch(0.80_0.18_195)]' // soft cyan-blue
+      filledSegments = 2
+    } else if (timeLeft <= 25 && timeLeft > 18) {
+      dangerText = 'NERVOUS'
+      dangerColor = 'text-yellow-400'
+      filledSegments = 4
+    } else if (timeLeft <= 18 && timeLeft > 10) {
+      dangerText = 'ANGRY'
+      dangerColor = 'text-orange-500'
+      filledSegments = 6
+    } else if (timeLeft <= 10 && timeLeft > 4) {
+      dangerText = 'RABID'
+      dangerColor = 'text-[#FF5F1F]' // neon orange
+      filledSegments = 8
+    } else {
+      dangerText = 'NUCLEAR'
+      dangerColor = 'text-[#FF007F] animate-pulse' // hot pink
+      filledSegments = 10
+    }
+  }
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-12 glass-panel border-b border-border"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-14 bg-background/95 border-b border-border/80 shadow-[0_4px_20px_rgba(0,0,0,0.3)] backdrop-blur-md"
     >
-      {/* Logo + name */}
-      <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <PawLogo size={24} />
-        <span className="font-display font-black text-base tracking-widest text-brand-glow">PAWnic</span>
+      {/* Left: Logo + name */}
+      <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+        <span className="text-xl">🐾</span>
+        <span className="font-display font-black text-lg tracking-widest text-[#F8FAFC]">
+          PAW<span className="text-[#FF5F1F]">nic</span>
+        </span>
       </Link>
 
-      {/* Room info */}
-      <div className="flex items-center gap-4">
-        {/* Status badge */}
-        <div className="flex items-center gap-1.5">
-          <span
-            className="w-2 h-2 rounded-full animate-pulse"
-            style={{ background: status.color, boxShadow: `0 0 6px ${status.color}` }}
-          />
-          <span className="font-display text-xs tracking-widest uppercase" style={{ color: status.color }}>
-            {status.label}
+      {/* Center: Danger Level progress segments */}
+      <div className="flex flex-col items-center justify-center translate-y-0.5">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="font-display text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
+            Danger Level
+          </span>
+          <span className={`font-display font-black text-xs uppercase tracking-widest ${dangerColor}`}>
+            {dangerText}
           </span>
         </div>
-
-        {/* Round */}
-        {room.status === 'playing' && (
-          <span className="text-xs text-muted-foreground font-display">
-            Round <span className="text-foreground">{room.round_number}</span>
-          </span>
-        )}
-
-        {/* Room code */}
-        <div className="flex items-center gap-1.5 glass-panel rounded-lg px-3 py-1">
-          <span className="text-xs text-muted-foreground font-display uppercase tracking-wider">Code:</span>
-          <span className="font-display font-bold text-sm tracking-widest text-brand-glow">{code}</span>
-          <button
-            onClick={() => navigator.clipboard.writeText(code)}
-            className="ml-1 text-muted-foreground hover:text-brand-glow transition-colors text-xs"
-            title="Copy code"
-          >
-            ⧉
-          </button>
+        <div className="flex gap-1.5">
+          {Array.from({ length: 10 }).map((_, idx) => {
+            const isFilled = idx < filledSegments
+            return (
+              <div
+                key={idx}
+                className={`danger-segment ${isFilled ? 'filled' : ''}`}
+                style={
+                  isFilled
+                    ? {
+                        backgroundColor:
+                          dangerText === 'NUCLEAR' || dangerText === 'RABID'
+                            ? '#FF007F'
+                            : dangerText === 'ANGRY'
+                            ? '#FF5F1F'
+                            : '#EAB308',
+                        boxShadow: `0 0 8px ${
+                          dangerText === 'NUCLEAR' || dangerText === 'RABID'
+                            ? '#FF007F'
+                            : dangerText === 'ANGRY'
+                            ? '#FF5F1F'
+                            : '#EAB308'
+                        }`,
+                      }
+                    : undefined
+                }
+              />
+            )
+          })}
         </div>
       </div>
 
-      {/* Player identity */}
-      {myPlayer && (
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{myPlayer.avatar}</span>
-          <div className="text-right">
-            <p className="font-display text-xs font-bold text-foreground leading-none">{myPlayer.nickname}</p>
-            <p className="font-display text-xs text-brand-glow leading-none mt-0.5">{myPlayer.points} pts</p>
+      {/* Right: Mock Stellar Wallet detail */}
+      <div className="flex items-center gap-4">
+        {/* Wallet info */}
+        <div className="flex items-center gap-2 bg-[#0E0E18] border border-cyan-500/25 hover:border-cyan-500/50 transition-all rounded-full px-3 py-1 text-xs shadow-[0_0_10px_rgba(6,182,212,0.05)]">
+          <span className="text-sm">🐱</span>
+          <div className="flex flex-col text-left leading-tight">
+            <span className="font-bold text-foreground">1.25 XLM</span>
+            <span className="text-[9px] text-muted-foreground select-all font-mono">GD...7J4K</span>
           </div>
+          <button
+            onClick={() => navigator.clipboard.writeText('GDSTLQWDX7J4K')}
+            className="text-[10px] text-muted-foreground hover:text-cyan-400 transition-colors ml-1"
+            title="Copy Wallet Address"
+          >
+            📋
+          </button>
         </div>
-      )}
+
+        {/* Menu burger */}
+        <button
+          className="w-8 h-8 rounded-lg flex items-center justify-center border border-border/80 hover:bg-white/5 transition-colors"
+          title="Menu"
+        >
+          <span className="text-xs text-muted-foreground">☰</span>
+        </button>
+      </div>
     </header>
   )
 }

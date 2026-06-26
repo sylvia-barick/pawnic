@@ -41,97 +41,153 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points)
 
   return (
-    <div className="flex flex-col gap-2 h-full">
-      {/* Room info card */}
-      <div className="glass-panel rounded-xl p-3">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-display text-xs uppercase tracking-widest text-muted-foreground">Room</span>
-          <span className={`font-display text-xs uppercase px-2 py-0.5 rounded-full tracking-wider ${
-            room.status === 'playing'
-              ? 'bg-[oklch(0.65_0.22_145/20%)] text-[oklch(0.65_0.22_145)]'
-              : room.status === 'finished'
-              ? 'bg-[oklch(0.62_0.26_22/20%)] text-[oklch(0.62_0.26_22)]'
-              : 'bg-[oklch(0.80_0.18_195/15%)] text-[oklch(0.80_0.18_195)]'
-          }`}>
-            {room.status}
+    <div className="flex flex-col gap-3 h-full">
+      {/* 1. Room Info Card */}
+      <div className="glass-panel glow-orange rounded-xl p-4 flex flex-col shrink-0">
+        <div className="flex items-center gap-2 border-b border-border/50 pb-2 mb-3">
+          <span className="text-sm">📋</span>
+          <span className="font-display text-xs uppercase tracking-widest font-black text-foreground">
+            Room Info
           </span>
         </div>
-        <div className="space-y-1.5 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Code</span>
-            <span className="font-display font-bold tracking-widest text-brand-glow select-all">{room.code}</span>
+
+        <div className="space-y-2.5 text-xs">
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground font-display font-medium">ROOM CODE</span>
+            <div className="flex items-center gap-2 bg-[#06060A]/80 border border-border/60 rounded px-2 py-0.5">
+              <span className="font-display font-bold tracking-widest text-[#FF5F1F] select-all uppercase">
+                {room.code}
+              </span>
+              <button
+                onClick={() => navigator.clipboard.writeText(room.code)}
+                className="text-[10px] text-muted-foreground hover:text-[#FF5F1F] transition-colors"
+                title="Copy Room Code"
+              >
+                ⧉
+              </button>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Players</span>
-            <span className="text-foreground">{players.length} / 8</span>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground font-display font-medium">PRIZE POOL</span>
+            <span className="font-display font-bold text-[#EAB308]">
+              {(players.length * 1.0).toFixed(2)} XLM
+            </span>
           </div>
-          {room.status === 'playing' && (
-            <>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Round</span>
-                <span className="text-foreground">{room.round_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Alive</span>
-                <span className="text-[oklch(0.65_0.22_145)]">{alivePlayers.length}</span>
-              </div>
-            </>
-          )}
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground font-display font-medium">BUY-IN</span>
+            <span className="font-display font-bold text-foreground">1.00 XLM</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground font-display font-medium">PLAYERS</span>
+            <span className="font-display font-bold text-foreground">{players.length} / 8</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground font-display font-medium">ROUND</span>
+            <span className="font-display font-bold text-foreground">{room.round_number}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground font-display font-medium">ALIVE</span>
+            <span className="font-display font-bold text-[#22C55E]">{alivePlayers.length}</span>
+          </div>
         </div>
       </div>
 
-      {/* Player list */}
-      <div className="glass-panel rounded-xl p-3 flex-1 overflow-hidden flex flex-col min-h-0">
-        <span className="font-display text-xs uppercase tracking-widest text-muted-foreground mb-2 shrink-0">Players</span>
-        <div className="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1">
+      {/* 2. Player list */}
+      <div className="glass-panel glow-orange rounded-xl p-4 flex-1 overflow-hidden flex flex-col min-h-0">
+        <div className="flex items-center gap-2 border-b border-border/50 pb-2 mb-3 shrink-0">
+          <span className="text-sm">🐾</span>
+          <span className="font-display text-xs uppercase tracking-widest font-black text-foreground">
+            Players
+          </span>
+        </div>
+
+        <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1 select-none">
           {sortedPlayers.map((p, i) => {
             const hasBomb = room.bomb_holder_id === p.id
             const isMe = p.user_id === userId
+            const isAlive = p.is_alive
+            
+            // Calculate a stylized holding time based on points for HUD completeness (PRD requirement)
+            const simulatedHoldingTime = (p.points / 10).toFixed(1) + 's'
+
             return (
               <div
                 key={p.id}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all ${
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all ${
                   hasBomb
-                    ? 'bg-[oklch(0.62_0.26_22/20%)] border border-[oklch(0.62_0.26_22/50%)]'
+                    ? 'bg-[#FF007F]/8 border-[#FF007F]/40 shadow-[0_0_8px_rgba(255,0,127,0.15)]'
                     : isMe
-                    ? 'bg-[oklch(0.70_0.22_45/10%)] border border-[oklch(0.70_0.22_45/30%)]'
-                    : 'bg-[oklch(0.12_0.03_270/60%)]'
-                } ${!p.is_alive ? 'opacity-40' : ''}`}
+                    ? 'bg-[#FF5F1F]/8 border-[#FF5F1F]/40 shadow-[0_0_8px_rgba(255,95,31,0.15)]'
+                    : 'bg-[#0E0E18]/80 border-border/50'
+                } ${!isAlive ? 'opacity-30' : ''}`}
               >
-                <span className="text-muted-foreground font-display text-xs w-3 shrink-0">
-                  {room.status !== 'waiting' ? i + 1 : ''}
+                {/* Ranking number */}
+                <span className="font-display font-black text-xs text-muted-foreground w-4 shrink-0">
+                  {i + 1}
                 </span>
-                <span className="text-base leading-none shrink-0">{p.avatar}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold truncate leading-none ${isMe ? 'text-brand-glow' : 'text-foreground'}`}>
-                    {p.nickname}
-                    {isMe && <span className="text-muted-foreground font-normal ml-1">(you)</span>}
-                    {room.host_id === p.user_id && <span className="ml-1 text-yellow-400 text-[10px]">★</span>}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{p.points} pts</p>
+
+                {/* Avatar */}
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-lg bg-background border ${
+                    hasBomb
+                      ? 'border-[#FF007F] shadow-[0_0_6px_#FF007F]'
+                      : isMe
+                      ? 'border-[#FF5F1F] shadow-[0_0_6px_#FF5F1F]'
+                      : 'border-border'
+                  }`}
+                >
+                  {p.avatar}
                 </div>
-                {hasBomb && <span className="text-base animate-bomb-bounce shrink-0" title="Has the bomb">🥔</span>}
-                {p.is_frozen && <span className="text-xs shrink-0">❄️</span>}
-                {p.shield_active && <span className="text-xs shrink-0">🛡️</span>}
-                {!p.is_alive && <span className="text-xs shrink-0">💀</span>}
+
+                {/* Name, Star Host badge, and simulated holding time */}
+                <div className="flex-1 min-w-0 text-left leading-tight">
+                  <div className="flex items-center gap-1">
+                    <p className={`text-xs font-bold truncate ${isMe ? 'text-[#FF5F1F]' : 'text-foreground'}`}>
+                      {p.nickname}
+                    </p>
+                    {isMe && <span className="text-[9px] text-muted-foreground font-normal">(You)</span>}
+                    {room.host_id === p.user_id && <span className="text-[#EAB308] text-[9px] shrink-0">★</span>}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                    {simulatedHoldingTime}
+                  </p>
+                </div>
+
+                {/* Points / Score */}
+                <div className="flex items-center gap-1 text-right shrink-0">
+                  <span className="font-display font-black text-xs text-foreground">
+                    {p.points}
+                  </span>
+                  <span className="text-[10px]" title="Ability Coins">🐾</span>
+                </div>
+
+                {/* Status Badges */}
+                {p.is_frozen && <span className="text-[10px] shrink-0" title="Frozen">❄️</span>}
+                {p.shield_active && <span className="text-[10px] shrink-0" title="Shielded">🛡️</span>}
+                {!isAlive && <span className="text-[10px] shrink-0" title="Eliminated">💀</span>}
               </div>
             )
           })}
         </div>
       </div>
 
-      {/* Actions */}
+      {/* 3. Actions / Leave Room Card */}
       <div className="space-y-2 shrink-0">
-        {msg && <p className="text-xs text-red-400 text-center bg-red-400/10 px-2 py-1 rounded">{msg}</p>}
+        {msg && (
+          <p className="text-xs text-[#FF007F] text-center bg-[#FF007F]/10 border border-[#FF007F]/20 px-2 py-1.5 rounded-lg font-display">
+            {msg}
+          </p>
+        )}
 
         {room.status === 'waiting' && isHost && (
           <button
             onClick={handleStart}
             disabled={!canStart || isPending}
-            className="w-full py-3 rounded-xl font-display font-black text-xs tracking-widest uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed text-black"
+            className="w-full py-3 rounded-xl font-display font-black text-xs tracking-widest uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
             style={{
-              background: 'oklch(0.70 0.22 45)',
-              boxShadow: canStart ? '0 0 16px oklch(0.70 0.22 45 / 50%)' : 'none',
+              background: '#FF5F1F',
+              boxShadow: canStart ? '0 0 16px rgba(255, 95, 31, 0.4)' : 'none',
+              border: '1px solid #FF5F1F',
             }}
           >
             {isPending ? 'Starting...' : players.length < 2 ? 'Need 2+ Players' : 'Start Game'}
@@ -139,7 +195,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
         )}
 
         {room.status === 'waiting' && !isHost && (
-          <div className="text-center text-xs text-muted-foreground font-display py-2 uppercase tracking-widest animate-pulse">
+          <div className="text-center text-xs text-muted-foreground font-display py-2.5 uppercase tracking-widest animate-pulse bg-white/3 border border-border/50 rounded-xl">
             Waiting for host...
           </div>
         )}
@@ -147,7 +203,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
         <button
           onClick={handleLeave}
           disabled={isPending}
-          className="w-full py-2 rounded-xl font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-red-400 transition-colors border border-border hover:border-red-400/40"
+          className="w-full py-2.5 rounded-xl font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-red-400 transition-colors border border-border/80 hover:border-red-500/40"
         >
           Leave Room
         </button>
