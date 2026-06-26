@@ -121,13 +121,13 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
         {/* Card Header (HUD display inside Arena Panel) */}
         {room?.status === 'playing' && (
           <div className="flex justify-between items-start w-full z-10 shrink-0">
-            {/* Explodes in timer */}
-            <div className="flex flex-col text-left leading-tight bg-black/40 border border-border/50 rounded-lg px-3 py-1.5 backdrop-blur-sm">
+            {/* Explodes in timer - Hidden */}
+            <div className="flex flex-col text-right leading-tight bg-black/40 border border-border/50 rounded-lg px-3 py-1.5 backdrop-blur-sm animate-pulse">
               <span className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">
-                Explodes In
+                Fuse Status
               </span>
-              <span className="font-display font-black text-xl text-[#FF5F1F] animate-pulse font-mono mt-0.5">
-                {timeLeft !== null ? `${timeLeft}s` : '--'}
+              <span className="font-display font-black text-sm text-[#FF5F1F] font-mono mt-0.5">
+                💣 TICKING
               </span>
             </div>
 
@@ -221,7 +221,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                       {p.nickname}
                     </span>
                     <span className="text-[8px] text-muted-foreground font-mono leading-none">
-                      {(p.points / 10).toFixed(1)}s
+                      {p.points} pts
                     </span>
                   </div>
                 )

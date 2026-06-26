@@ -91,7 +91,7 @@ export async function startGame(userId: string, roomId: string) {
   if (!players || players.length < 2) return { error: 'Need at least 2 players to start' }
 
   const startingHolder = players[Math.floor(Math.random() * players.length)]
-  const explosionSeconds = 20 + Math.floor(Math.random() * 16)
+  const explosionSeconds = 10 + Math.floor(Math.random() * 291)
   const explosionAt = new Date(Date.now() + explosionSeconds * 1000).toISOString()
 
   const { error } = await supabase
@@ -104,7 +104,7 @@ export async function startGame(userId: string, roomId: string) {
   await supabase.from('events').insert({
     room_id: roomId,
     type: 'start',
-    message: `Game started! ${startingHolder.nickname} holds the bomb. Timer: ${explosionSeconds}s`,
+    message: `Game started! ${startingHolder.nickname} holds the bomb. The fuse is ticking...`,
   })
 
   return { success: true }
@@ -291,7 +291,7 @@ export async function explodeBomb(roomId: string) {
     })
   } else {
     const nextHolder = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]
-    const explosionSeconds = 20 + Math.floor(Math.random() * 16)
+    const explosionSeconds = 10 + Math.floor(Math.random() * 291)
     const explosionAt = new Date(Date.now() + explosionSeconds * 1000).toISOString()
 
     await supabase.from('rooms').update({
@@ -302,7 +302,7 @@ export async function explodeBomb(roomId: string) {
 
     await supabase.from('events').insert({
       room_id: roomId, type: 'explode', nickname: holder.nickname,
-      message: `BOOM! ${holder.nickname} is eliminated! Round ${room.round_number + 1} - ${nextHolder.nickname} gets the bomb! (${explosionSeconds}s)`,
+      message: `BOOM! ${holder.nickname} is eliminated! Round ${room.round_number + 1} - ${nextHolder.nickname} gets the bomb!`,
     })
   }
 
@@ -327,5 +327,23 @@ export async function sendChatMessage(userId: string, roomId: string, nickname: 
 export async function leaveRoom(userId: string, roomId: string) {
   const supabase = createClient()
   await supabase.from('players').delete().eq('room_id', roomId).eq('user_id', userId)
+  return { success: true }
+}
+
+export async function incrementHolderPoints(roomId: string, playerId: string) {
+  const supabase = createClient()
+
+  // Verify the room is playing and the player is the actual bomb holder
+  const { data: room } = await supabase.from('rooms').select('status, bomb_holder_id').eq('id', roomId).single()
+  if (!room || room.status !== 'playing' || room.bomb_holder_id !== playerId) return { error: 'Not the holder' }
+
+  // Get the player's current points and double points status
+  const { data: player } = await supabase.from('players').select('points, double_points_until').eq('id', playerId).single()
+  if (!player) return { error: 'Player not found' }
+
+  const isDouble = player.double_points_until && new Date(player.double_points_until) > new Date()
+  const pointsEarned = isDouble ? 2 : 1
+
+  await supabase.from('players').update({ points: player.points + pointsEarned }).eq('id', playerId)
   return { success: true }
 }

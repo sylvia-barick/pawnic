@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Room, Player, GameEvent } from '@/lib/types'
-import { explodeBomb } from '@/app/actions/game'
+import { explodeBomb, incrementHolderPoints } from '@/app/actions/game'
 
 function getOrCreateUserId(): string {
   if (typeof window === 'undefined') return ''
@@ -119,6 +119,21 @@ export function useRoom(code: string) {
 
     return () => clearInterval(interval)
   }, [room?.explosion_at, room?.status, room?.bomb_holder_id, myPlayer?.id, room?.id])
+
+  // Points accumulation timer — only the current bomb holder increments points every second
+  useEffect(() => {
+    if (room?.status !== 'playing') return
+    const holderId = room.bomb_holder_id
+    const myPlayerId = myPlayer?.id
+
+    if (!holderId || holderId !== myPlayerId) return
+
+    const interval = setInterval(() => {
+      incrementHolderPoints(room.id, myPlayerId)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [room?.status, room?.bomb_holder_id, myPlayer?.id, room?.id])
 
   return {
     room,

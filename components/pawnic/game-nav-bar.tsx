@@ -35,38 +35,12 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
   let dangerBorderColor = 'glass-panel glow-blue'
   let dangerBadgeBorderColor = 'border-[#3B82F6] text-[#3B82F6]'
 
-  if (room.status === 'playing' && timeLeft !== null) {
-    if (timeLeft > 25) {
-      dangerText = 'CALM'
-      dangerColor = 'text-[#3B82F6]' // soft cyan-blue
-      filledSegments = 2
-      dangerBorderColor = 'glass-panel glow-blue'
-      dangerBadgeBorderColor = 'border-[#3B82F6] text-[#3B82F6]'
-    } else if (timeLeft <= 25 && timeLeft > 18) {
-      dangerText = 'NERVOUS'
-      dangerColor = 'text-yellow-400'
-      filledSegments = 4
-      dangerBorderColor = 'glass-panel glow-yellow'
-      dangerBadgeBorderColor = 'border-yellow-400 text-yellow-400'
-    } else if (timeLeft <= 18 && timeLeft > 10) {
-      dangerText = 'ANGRY'
-      dangerColor = 'text-orange-500'
-      filledSegments = 6
-      dangerBorderColor = 'glass-panel glow-orange'
-      dangerBadgeBorderColor = 'border-orange-500 text-orange-500'
-    } else if (timeLeft <= 10 && timeLeft > 4) {
-      dangerText = 'RABID'
-      dangerColor = 'text-[#FF007F]'
-      filledSegments = 8
-      dangerBorderColor = 'glass-panel glow-red'
-      dangerBadgeBorderColor = 'border-[#FF007F] text-[#FF007F]'
-    } else {
-      dangerText = 'NUCLEAR'
-      dangerColor = 'text-[#FF007F] animate-pulse'
-      filledSegments = 10
-      dangerBorderColor = 'glass-panel glow-red animate-pulse'
-      dangerBadgeBorderColor = 'border-[#FF007F] text-[#FF007F] animate-pulse'
-    }
+  if (room.status === 'playing') {
+    dangerText = 'UNSTABLE'
+    dangerColor = 'text-[#FF5F1F] animate-pulse'
+    filledSegments = 6
+    dangerBorderColor = 'glass-panel glow-orange animate-pulse'
+    dangerBadgeBorderColor = 'border-[#FF5F1F] text-[#FF5F1F] animate-pulse'
   }
 
   return (
@@ -106,7 +80,7 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
                           backgroundColor:
                             dangerText === 'NUCLEAR' || dangerText === 'RABID'
                               ? '#FF007F'
-                              : dangerText === 'ANGRY'
+                              : dangerText === 'ANGRY' || dangerText === 'UNSTABLE'
                               ? '#FF5F1F'
                               : dangerText === 'NERVOUS'
                               ? '#FFE234'
@@ -114,7 +88,7 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
                           boxShadow: `0 0 8px ${
                             dangerText === 'NUCLEAR' || dangerText === 'RABID'
                               ? '#FF007F'
-                              : dangerText === 'ANGRY'
+                              : dangerText === 'ANGRY' || dangerText === 'UNSTABLE'
                               ? '#FF5F1F'
                               : dangerText === 'NERVOUS'
                               ? '#FFE234'
@@ -129,7 +103,7 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
           </div>
         </div>
         <div className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 border-black bg-black/40 text-sm shadow-[1.5px_1.5px_0px_0px_#000000] ${dangerColor}`}>
-          {dangerText === 'NUCLEAR' ? '🙀' : dangerText === 'RABID' ? '😾' : dangerText === 'ANGRY' ? '🐱' : '😸'}
+          {dangerText === 'NUCLEAR' ? '🙀' : dangerText === 'RABID' ? '😾' : dangerText === 'ANGRY' || dangerText === 'UNSTABLE' ? '🙀' : '😸'}
         </div>
       </div>
 

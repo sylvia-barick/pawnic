@@ -107,8 +107,8 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
             const isMe = p.user_id === userId
             const isAlive = p.is_alive
             
-            // Calculate a stylized holding time based on points for HUD completeness (PRD requirement)
-            const simulatedHoldingTime = (p.points / 10).toFixed(1) + 's'
+            // Show status of the player
+            const playerStatus = !isAlive ? '💀 Eliminated' : hasBomb ? '🔥 Holding Cat!' : '💚 Safe'
 
             return (
               <div
@@ -139,7 +139,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
                   {p.avatar}
                 </div>
 
-                {/* Name, Star Host badge, and simulated holding time */}
+                {/* Name, Star Host badge, and status */}
                 <div className="flex-1 min-w-0 text-left leading-tight">
                   <div className="flex items-center gap-1">
                     <p className={`text-xs font-bold truncate ${isMe ? 'text-[#FF5F1F]' : 'text-foreground'}`}>
@@ -149,7 +149,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
                     {room.host_id === p.user_id && <span className="text-[#EAB308] text-[9px] shrink-0">★</span>}
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-                    {simulatedHoldingTime}
+                    {playerStatus}
                   </p>
                 </div>
 
