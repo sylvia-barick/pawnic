@@ -25,7 +25,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
 
   // Countdown timer for Explosions
   useEffect(() => {
-    if (!room?.explosion_at || room.status !== 'playing') {
+    if (!room?.explosion_at || room?.status !== 'playing') {
       setTimeLeft(null)
       return
     }
@@ -153,7 +153,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
             <p className="text-xs text-muted-foreground">
               Share code{' '}
               <span className="text-[#FF5F1F] font-display font-bold select-all bg-black/30 border border-border/30 px-2 py-0.5 rounded">
-                {room.code}
+                {room?.code}
               </span>{' '}
               to invite
             </p>
@@ -170,7 +170,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                 const r = alivePlayers.length <= 3 ? 95 : 115
                 const x = Math.cos(angle) * r + 150 - 26
                 const y = Math.sin(angle) * r + 150 - 26
-                const hasBomb = p.id === room.bomb_holder_id
+                const hasBomb = p.id === room?.bomb_holder_id
                 const isMe = p.user_id === userId
                 const canPass = iHaveBomb && !isMe && !isFrozen && !isPending
 
@@ -303,7 +303,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
           <div className="flex gap-1.5 justify-between items-center flex-1 py-1">
             {abilitySlots.map((slot, index) => {
               const ownedCount = myPowers[slot.key] ?? 0
-              const isPlaying = room.status === 'playing'
+              const isPlaying = room?.status === 'playing'
               const canUse = isPlaying && ownedCount > 0 && !isPending
 
               return (
