@@ -10,9 +10,11 @@ interface Props {
   events: GameEvent[]
   myPlayer: Player | null
   userId: string
+  reactions: { id: string; playerId: string; emoji: string; xOffset: number }[]
+  sendReaction: (emoji: string) => void
 }
 
-export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
+export function ArenaPanel({ room, players, events, myPlayer, userId, reactions, sendReaction }: Props) {
   const [chatInput, setChatInput] = useState('')
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [showExplosion, setShowExplosion] = useState(false)
@@ -22,6 +24,26 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
   const [errorMsg, setErrorMsg] = useState('')
   const eventsEndRef = useRef<HTMLDivElement>(null)
   const lastExplodeEventRef = useRef<string | null>(null)
+
+  // Reaction Picker state & refs
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const pickerButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node) &&
+        pickerButtonRef.current &&
+        !pickerButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Countdown timer for Explosions
   useEffect(() => {
@@ -189,23 +211,43 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
                 const r = alivePlayers.length <= 3 ? 95 : 115
-                const x = Math.cos(angle) * r + 150 - 26
-                const y = Math.sin(angle) * r + 150 - 26
+                const x = Math.cos(angle) * r + 150 - 34
+                const y = Math.sin(angle) * r + 150 - 34
                 const hasBomb = p.id === room?.bomb_holder_id
                 const showBombVisual = hasBomb && !shouldHideHolder
                 const isMe = p.user_id === userId
                 const canPass = iHaveBomb && !isMe && !isFrozen && !isPending
 
+                const playerReactions = reactions.filter(r => r.playerId === p.id)
+
                 return (
                   <div
                     key={p.id}
                     className="absolute flex flex-col items-center gap-1 z-10"
-                    style={{ left: x, top: y, width: 52 }}
+                    style={{ left: x, top: y, width: 68 }}
                   >
+                    {/* Floating Reactions */}
+                    {playerReactions.map(r => (
+                      <span
+                        key={r.id}
+                        className="absolute pointer-events-none z-50"
+                        style={{
+                          bottom: '100%',
+                          left: '50%',
+                          marginLeft: `${r.xOffset}px`,
+                          transform: 'translateX(-50%)'
+                        }}
+                      >
+                        <span className="block text-2xl animate-float-up-fade">
+                          {r.emoji}
+                        </span>
+                      </span>
+                    ))}
+
                     <button
                       onClick={() => canPass && handlePass(p.id)}
                       disabled={!canPass}
-                      className={`w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 transition-all relative ${
+                      className={`avatar-circle w-16 h-16 rounded-2xl border-3 flex items-center justify-center overflow-hidden transition-all relative select-none ${
                         showBombVisual
                           ? 'border-[#FF007F] animate-pulse shadow-[0_0_15px_#FF007F]'
                           : canPass
@@ -216,7 +258,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                       } bg-[#0E0E18]`}
                       title={canPass ? `Pass bomb to ${p.nickname}` : p.nickname}
                     >
-                      {p.avatar}
+                      {p.avatar.endsWith('.png') ? (
+                        <img src={`/${p.avatar}`} alt="Cat" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl">{p.avatar}</span>
+                      )}
                       {showBombVisual && (
                         <span className="absolute -top-2 -right-2 animate-bomb-bounce block w-6 h-6 z-20">
                           <img
@@ -301,7 +347,13 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                   disabled={isPending}
                   className="flex items-center gap-2 px-2.5 py-1.5 bg-white/3 border border-border/60 hover:bg-[#06B6D4]/10 hover:border-[#06B6D4] rounded-lg text-xs transition-all"
                 >
-                  <span>{p.avatar}</span>
+                  <span className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center bg-background/50">
+                    {p.avatar.endsWith('.png') ? (
+                      <img src={`/${p.avatar}`} alt="Cat" className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <span>{p.avatar}</span>
+                    )}
+                  </span>
                   <span className="font-bold">{p.nickname}</span>
                 </button>
               ))}
@@ -387,7 +439,59 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
           </div>
 
           {/* Form input */}
-          <form onSubmit={handleChat} className="flex gap-2 p-2 border-t border-border/50 shrink-0">
+          <form onSubmit={handleChat} className="flex gap-2 p-2 border-t border-border/50 shrink-0 relative">
+            <button
+              ref={pickerButtonRef}
+              type="button"
+              onClick={() => setShowPicker(!showPicker)}
+              className="text-muted-foreground hover:text-foreground text-sm transition-colors px-1 cursor-pointer shrink-0"
+              title="Add Reaction"
+            >
+              😀
+            </button>
+
+            {showPicker && (
+              <div
+                ref={pickerRef}
+                className="absolute bottom-full right-2 mb-2 p-3 rounded-xl bg-[#0A0A10]/95 border border-[#A855F7]/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] z-30 w-56 flex flex-col gap-2 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150"
+              >
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-display font-bold block mb-1 text-left">
+                    Standard Reactions
+                  </span>
+                  <div className="grid grid-cols-6 gap-1">
+                    {['😂', '😭', '😱', '❤️', '👏', '🔥'].map(emoji => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => sendReaction(emoji)}
+                        className="text-lg hover:scale-125 transition-transform p-1 hover:bg-white/5 rounded cursor-pointer"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="border-t border-border/30 pt-2">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-display font-bold block mb-1 text-left">
+                    Game Reactions
+                  </span>
+                  <div className="grid grid-cols-7 gap-1">
+                    {['💣', '🥔', '💥', '💀', '🚨', '🪞', '💸'].map(emoji => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => sendReaction(emoji)}
+                        className="text-lg hover:scale-125 transition-transform p-1 hover:bg-white/5 rounded cursor-pointer"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <input
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}

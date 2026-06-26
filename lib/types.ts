@@ -51,4 +51,13 @@ export const POWER_CATALOG: Record<PowerType, { name: string; description: strin
   shield:        { name: 'Shield',        description: 'Bounce the bomb back to sender',       cost: 50,  emoji: '🛡️' },
 }
 
-export const AVATARS = ['🐱', '🐶', '🦊', '🐸', '🐻', '🐼', '🐯', '🐨', '🦁', '🐮']
+export const AVATARS = [
+  'cat1.png',
+  'cat2.png',
+  'cat3.png',
+  'cat4.png',
+  'cat5.png',
+  'cat6.png',
+  'cat7.png',
+  'cat8.png'
+]

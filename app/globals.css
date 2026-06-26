@@ -142,7 +142,8 @@
 .glow-orange {
   border: 4px solid #000000 !important;
   box-shadow: 5px 5px 0px 0px #FF5F1F !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #1e110b 100%) !important;
+  background: linear-gradient(135deg, rgba(13, 13, 22, 0.75) 0%, rgba(30, 17, 11, 0.75) 100%) !important;
+  backdrop-filter: blur(8px) !important;
 }
 .glow-yellow {
   border: 4px solid #000000 !important;
@@ -164,10 +165,20 @@
   box-shadow: 5px 5px 0px 0px #FF007F !important;
   background: linear-gradient(135deg, #0d0d16 0%, #210a14 100%) !important;
 }
+.glow-pink {
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #FF007F !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #210a14 100%) !important;
+}
 .glow-cyan {
   border: 4px solid #000000 !important;
   box-shadow: 5px 5px 0px 0px #06B6D4 !important;
   background: linear-gradient(135deg, #0d0d16 0%, #06161a 100%) !important;
+}
+.glow-green {
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #22C55E !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #0b1a10 100%) !important;
 }
 
 .cyber-grid {
@@ -187,6 +198,59 @@
   color: #FF5F1F !important;
   font-weight: 900 !important;
   text-shadow: none !important;
+}
+.text-brand-glow-pink {
+  color: #FF007F !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+.text-brand-glow-green {
+  color: #22C55E !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+/* Green and Blue Pop Button Overrides */
+button[style*="background: #22C55E"],
+button[style*="background:#22C55E"],
+button[style*="background: rgb(34, 197, 94)"],
+button[style*="background:rgb(34, 197, 94)"],
+button[class*="bg-[#22C55E]"] {
+  background: #22C55E !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+}
+button[style*="background: #22C55E"]:hover,
+button[style*="background:#22C55E"]:hover,
+button[style*="background: rgb(34, 197, 94)"]:hover,
+button[style*="background:rgb(34, 197, 94)"]:hover {
+  background: #1eb253 !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
+}
+
+button[style*="background: #3B82F6"],
+button[style*="background:#3B82F6"],
+button[style*="background: rgb(59, 130, 246)"],
+button[style*="background:rgb(59, 130, 246)"],
+button[class*="bg-[#3B82F6]"] {
+  background: #3B82F6 !important;
+  border: 3px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+}
+button[style*="background: #3B82F6"]:hover,
+button[style*="background:#3B82F6"]:hover,
+button[style*="background: rgb(59, 130, 246)"]:hover,
+button[style*="background:rgb(59, 130, 246)"]:hover {
+  background: #2563eb !important;
+  box-shadow: 4px 4px 0px 0px #000000 !important;
 }
 
 /* General interactive overrides */
@@ -463,3 +527,23 @@ button[class*="hover:text-red-400"]:hover {
 .animate-pulse-red { animation: pulse-red 1.2s ease-in-out infinite !important; }
 .animate-pulse-blue { animation: pulse-blue 2s ease-in-out infinite !important; }
 .animate-bomb-bounce { animation: bomb-bounce 1s ease-in-out infinite !important; }
+
+/* Real-time Reaction Floating Animation */
+@keyframes float-up-fade {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(-20px) scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-90px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-float-up-fade {
+  animation: float-up-fade 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

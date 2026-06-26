@@ -71,6 +71,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
             events={gameState.events}
             myPlayer={gameState.myPlayer}
             userId={gameState.userId}
+            reactions={gameState.reactions}
+            sendReaction={gameState.sendReaction}
           />
         </div>
 

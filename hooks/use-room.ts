@@ -26,6 +26,31 @@ export function useRoom(code: string) {
   const explodingRef = useRef(false)
   const roomIdRef = useRef<string | null>(null)
 
+  // Reaction System State
+  const [reactions, setReactions] = useState<{ id: string; playerId: string; emoji: string; xOffset: number }[]>([])
+  const channelRef = useRef<any>(null)
+
+  const addReaction = useCallback((playerId: string, emoji: string) => {
+    const id = Math.random().toString(36).substring(2, 9)
+    const xOffset = Math.floor(Math.random() * 30) - 15
+    setReactions(prev => [...prev, { id, playerId, emoji, xOffset }])
+    setTimeout(() => {
+      setReactions(prev => prev.filter(r => r.id !== id))
+    }, 2000)
+  }, [])
+
+  const sendReaction = useCallback((emoji: string) => {
+    if (!myPlayer) return
+    addReaction(myPlayer.id, emoji)
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'reaction',
+        payload: { playerId: myPlayer.id, emoji }
+      })
+    }
+  }, [myPlayer, addReaction])
+
   const supabase = createClient()
 
   const fetchAll = useCallback(async (uid: string) => {
@@ -67,7 +92,7 @@ export function useRoom(code: string) {
     if (!room?.id) return
     const roomId = room.id
 
-    const channel = supabase.channel(`room:${roomId}:${Date.now()}`)
+    const channel = supabase.channel(`room:${roomId}`)
 
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}`,
@@ -96,9 +121,21 @@ export function useRoom(code: string) {
       setEvents(prev => [...prev.slice(-59), payload.new as GameEvent])
     })
 
+    // Listen for reactions broadcast
+    channel.on('broadcast', { event: 'reaction' }, ({ payload }) => {
+      if (payload && payload.playerId && payload.emoji) {
+        addReaction(payload.playerId, payload.emoji)
+      }
+    })
+
     channel.subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [room?.id])
+    channelRef.current = channel
+
+    return () => {
+      channelRef.current = null
+      supabase.removeChannel(channel)
+    }
+  }, [room?.id, addReaction])
 
   // Explosion countdown — any active visible client can trigger the explosion
   useEffect(() => {
@@ -143,6 +180,8 @@ export function useRoom(code: string) {
     userId,
     loading,
     error,
+    reactions,
+    sendReaction,
     refetch: () => fetchAll(getOrCreateUserId()),
   }
 }

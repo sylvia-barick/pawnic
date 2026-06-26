@@ -47,6 +47,11 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
     })
   }
 
+  const myBuyIn = Number((myPlayer?.powers as any)?.buy_in ?? room.buy_in ?? 1.0)
+  const totalPrizePool = players.reduce((sum, p) => {
+    const pBuyIn = Number((p.powers as any)?.buy_in ?? room.buy_in ?? 1.0)
+    return sum + pBuyIn
+  }, 0)
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points)
 
   return (
@@ -79,12 +84,12 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground font-display font-medium">PRIZE POOL</span>
             <span className="font-display font-bold text-[#EAB308]">
-              {(players.length * 1.0).toFixed(2)} XLM
+              {totalPrizePool.toFixed(2)} XLM
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground font-display font-medium">BUY-IN</span>
-            <span className="font-display font-bold text-foreground">1.00 XLM</span>
+            <span className="font-display font-bold text-foreground">{myBuyIn.toFixed(2)} XLM</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground font-display font-medium">PLAYERS</span>
@@ -138,7 +143,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
 
                 {/* Avatar */}
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-lg bg-background border ${
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-background border ${
                     showBombVisual
                       ? 'border-[#FF007F] shadow-[0_0_6px_#FF007F]'
                       : isMe
@@ -146,7 +151,11 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
                       : 'border-border'
                   }`}
                 >
-                  {p.avatar}
+                  {p.avatar.endsWith('.png') ? (
+                    <img src={`/${p.avatar}`} alt="Cat" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl">{p.avatar}</span>
+                  )}
                 </div>
 
                 {/* Name, Star Host badge, and status */}

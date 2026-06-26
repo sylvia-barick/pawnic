@@ -2,6 +2,7 @@
 // PAWnic game server actions — no Supabase Auth required
 import { createClient } from '@/lib/supabase/client-server'
 import { PowerType, POWER_CATALOG } from '@/lib/types'
+import { verifyBuyInTransaction, sendPayout } from '@/lib/stellar'
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -23,21 +24,37 @@ function getRandomExplosionSeconds(): number {
 
 // ── Room management ───────────────────────────────────────────────────────────
 
-export async function createRoom(userId: string, nickname: string, avatar: string) {
+export async function createRoom(
+  userId: string,
+  nickname: string,
+  avatar: string,
+  buyInXlm: number,
+  stellarAddress: string,
+  txHash: string
+) {
   const supabase = createClient()
   const code = generateCode()
 
+  // 1. Verify player's payment transaction on Stellar Testnet
+  const verified = await verifyBuyInTransaction(txHash, buyInXlm.toFixed(7), stellarAddress)
+  if (!verified) {
+    return { error: 'Buy-in Stellar transaction verification failed. Please try again.' }
+  }
+
   const { data: room, error: roomError } = await supabase
     .from('rooms')
-    .insert({ code, host_id: userId, buy_in: 0, status: 'waiting' })
+    .insert({ code, host_id: userId, buy_in: buyInXlm, status: 'waiting' })
     .select()
     .single()
 
   if (roomError) return { error: roomError.message }
 
+  // Store user's Stellar wallet address and buy-in inside powers JSONB metadata
+  const initialPowers = { wallet_address: stellarAddress, buy_in: buyInXlm }
+
   const { error: playerError } = await supabase
     .from('players')
-    .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: {}, points: 100 })
+    .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: initialPowers, points: 100 })
 
   if (playerError) return { error: playerError.message }
 
@@ -45,13 +62,21 @@ export async function createRoom(userId: string, nickname: string, avatar: strin
     room_id: room.id,
     type: 'join',
     nickname,
-    message: `${nickname} created the room`,
+    message: `${nickname} created the room (buy-in: ${buyInXlm} XLM)`,
   })
 
   return { room, code }
 }
 
-export async function joinRoom(userId: string, code: string, nickname: string, avatar: string) {
+export async function joinRoom(
+  userId: string,
+  code: string,
+  nickname: string,
+  avatar: string,
+  stellarAddress: string,
+  txHash: string,
+  buyInXlm: number
+) {
   const supabase = createClient()
 
   const { data: room, error: roomError } = await supabase
@@ -71,15 +96,23 @@ export async function joinRoom(userId: string, code: string, nickname: string, a
     .maybeSingle()
 
   if (!existing) {
+    // 1. Verify player's payment transaction on Stellar
+    const verified = await verifyBuyInTransaction(txHash, buyInXlm.toFixed(7), stellarAddress)
+    if (!verified) {
+      return { error: `Buy-in Stellar transaction verification failed. Must pay ${buyInXlm} XLM.` }
+    }
+
     const { data: allPlayers } = await supabase
       .from('players')
       .select()
       .eq('room_id', room.id)
     if ((allPlayers?.length ?? 0) >= 8) return { error: 'Room is full (max 8 players)' }
 
+    const initialPowers = { wallet_address: stellarAddress, buy_in: buyInXlm }
+
     const { error: playerError } = await supabase
       .from('players')
-      .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: {}, points: 100 })
+      .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: initialPowers, points: 100 })
 
     if (playerError) return { error: playerError.message }
 
@@ -87,7 +120,7 @@ export async function joinRoom(userId: string, code: string, nickname: string, a
       room_id: room.id,
       type: 'join',
       nickname,
-      message: `${nickname} joined the room`,
+      message: `${nickname} joined the room (buy-in: ${buyInXlm} XLM)`,
     })
   }
 
@@ -286,10 +319,10 @@ export async function explodeBomb(roomId: string) {
   const now = new Date()
   if (room.explosion_at && new Date(room.explosion_at) > now) return { error: 'Timer has not expired' }
 
-  // Lock: Atomically set explosion_at = null to prevent duplicate triggers from other clients
+  // Lock: Atomically set status = finished to prevent duplicate triggers from other clients
   const { data: lockedRoom, error: lockErr } = await supabase
     .from('rooms')
-    .update({ explosion_at: null })
+    .update({ status: 'finished', bomb_holder_id: null, explosion_at: null })
     .eq('id', roomId)
     .eq('status', 'playing')
     .eq('explosion_at', room.explosion_at)
@@ -313,7 +346,7 @@ export async function explodeBomb(roomId: string) {
     const newPowers = { ...currentPowers, ['nine_lives']: nineLivesCount - 1 }
     await supabase.from('players').update({ powers: newPowers }).eq('id', holder.id)
 
-    // Pass the bomb to a random other player who is still alive
+    // Revert room status back to playing and generate a new timer
     const { data: aliveOtherPlayers } = await supabase
       .from('players')
       .select()
@@ -330,6 +363,7 @@ export async function explodeBomb(roomId: string) {
     const explosionAt = new Date(Date.now() + explosionSeconds * 1000).toISOString()
 
     await supabase.from('rooms').update({
+      status: 'playing',
       bomb_holder_id: nextHolder.id,
       explosion_at: explosionAt,
       round_number: room.round_number + 1,
@@ -348,35 +382,70 @@ export async function explodeBomb(roomId: string) {
   // Otherwise, eliminate them:
   await supabase.from('players').update({ is_alive: false }).eq('id', holder.id)
 
-  const { data: alivePlayers } = await supabase
-    .from('players').select().eq('room_id', roomId).eq('is_alive', true)
+  // Game ends immediately on the first person to explode!
+  // We calculate payouts for other players.
+  const { data: allPlayers } = await supabase
+    .from('players').select('*').eq('room_id', roomId)
 
-  if (!alivePlayers || alivePlayers.length <= 1) {
-    const winner = alivePlayers?.[0]
-    await supabase.from('rooms')
-      .update({ status: 'finished', bomb_holder_id: null, explosion_at: null })
-      .eq('id', roomId)
+  // Compute total prize pool from all players' individual buy-ins (stored in powers.buy_in)
+  const totalPrizePool = (allPlayers ?? []).reduce((sum, p) => {
+    const pBuyIn = Number(p.powers?.buy_in ?? room.buy_in ?? 1.0)
+    return sum + pBuyIn
+  }, 0)
 
-    await supabase.from('events').insert({
-      room_id: roomId, type: 'explode', nickname: holder.nickname,
-      message: `BOOM! ${holder.nickname} exploded! ${winner ? `${winner.nickname} WINS THE GAME!` : 'No survivors!'}`,
+  // Find survivors (everyone except the eliminated holder)
+  const survivors = (allPlayers ?? []).filter(p => p.id !== holder.id)
+
+  // Calculate weights based on: (1) points earned (holding time) and (2) buy-in contribution
+  const survivorWeights = survivors.map(s => {
+    const buyIn = Number(s.powers?.buy_in ?? room.buy_in ?? 1.0)
+    const points = Math.max(1, s.points) // Ensure points is at least 1
+    return {
+      player: s,
+      weight: buyIn * points,
+    }
+  })
+
+  const sumWeights = survivorWeights.reduce((sum, item) => sum + item.weight, 0)
+
+  // Trigger payments
+  await Promise.all(
+    survivorWeights.map(async (item) => {
+      const s = item.player
+      const walletAddress = s.powers?.wallet_address
+      if (!walletAddress) {
+        console.warn(`No wallet address found for survivor ${s.nickname}`)
+        return
+      }
+
+      // Calculate share: weight / sumWeights
+      const share = sumWeights > 0 ? (item.weight / sumWeights) : (1 / survivors.length)
+      const payoutAmount = totalPrizePool * share
+      const payoutStr = payoutAmount.toFixed(7)
+
+      // Execute payout transfer on Stellar Testnet
+      const txHash = await sendPayout(walletAddress, payoutStr)
+
+      // Store payout amount and tx hash in the player's powers metadata
+      const currentPowers = (s.powers ?? {}) as Record<string, any>
+      const newPowers = { ...currentPowers, payout_amount: payoutAmount, payout_tx: txHash }
+      await supabase.from('players').update({ powers: newPowers }).eq('id', s.id)
+
+      await supabase.from('events').insert({
+        room_id: roomId,
+        type: 'system',
+        nickname: s.nickname,
+        message: `💸 Paid ${payoutAmount.toFixed(2)} XLM survival payout to ${s.nickname}! (Tx: ${txHash ? txHash.slice(0, 8) + '...' : 'Failed'})`,
+      })
     })
-  } else {
-    const nextHolder = alivePlayers[Math.floor(Math.random() * alivePlayers.length)]
-    const explosionSeconds = getRandomExplosionSeconds()
-    const explosionAt = new Date(Date.now() + explosionSeconds * 1000).toISOString()
+  )
 
-    await supabase.from('rooms').update({
-      bomb_holder_id: nextHolder.id,
-      explosion_at: explosionAt,
-      round_number: room.round_number + 1,
-    }).eq('id', roomId)
-
-    await supabase.from('events').insert({
-      room_id: roomId, type: 'explode', nickname: holder.nickname,
-      message: `BOOM! ${holder.nickname} is eliminated! Round ${room.round_number + 1} - ${nextHolder.nickname} gets the POTATO!`,
-    })
-  }
+  await supabase.from('events').insert({
+    room_id: roomId,
+    type: 'explode',
+    nickname: holder.nickname,
+    message: `💥 BOOM! The POTATO exploded! ${holder.nickname} is eliminated! The game has ended and rewards have been distributed to the survivors.`,
+  })
 
   return { success: true }
 }
@@ -394,6 +463,12 @@ export async function sendChatMessage(userId: string, roomId: string, nickname: 
     message,
   })
   return { success: true }
+}
+
+export async function getRoomBuyIn(code: string) {
+  const supabase = createClient()
+  const { data: room } = await supabase.from('rooms').select('buy_in').eq('code', code.toUpperCase()).maybeSingle()
+  return room ? Number(room.buy_in) : null
 }
 
 export async function leaveRoom(userId: string, roomId: string) {

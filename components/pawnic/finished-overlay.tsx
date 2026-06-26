@@ -13,7 +13,9 @@ export function FinishedOverlay({ players, myPlayer }: Props) {
   const router = useRouter()
   const sorted = [...players].sort((a, b) => b.points - a.points)
   const winner = players.find(p => p.is_alive) ?? sorted[0]
-  const isWinner = winner?.user_id === myPlayer?.user_id
+  const isWinner = myPlayer?.is_alive === true
+  const myPayout = myPlayer?.powers?.payout_amount ? Number(myPlayer.powers.payout_amount) : 0
+  const myPayoutTx = myPlayer?.powers?.payout_tx || ''
 
   return (
     <div
@@ -27,18 +29,56 @@ export function FinishedOverlay({ players, myPlayer }: Props) {
 
           {/* Heading */}
           <h2 className="font-display font-black text-3xl tracking-widest mb-1.5 text-foreground">
-            {isWinner ? 'You Win!' : 'Game Over'}
+            {isWinner ? 'You Survived!' : 'Game Over'}
           </h2>
 
           {/* Winner details */}
           {winner && (
-            <p className="text-muted-foreground text-sm mb-6 flex items-center justify-center gap-1.5">
-              <span className="text-xl bg-[#0E0E18] border border-border/80 w-8 h-8 rounded-full flex items-center justify-center">
-                {winner.avatar}
+            <p className="text-muted-foreground text-sm mb-4 flex items-center justify-center gap-1.5">
+              <span className="bg-[#0E0E18] border border-border/80 w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+                {winner.avatar.endsWith('.png') ? (
+                  <img src={`/${winner.avatar}`} alt="Cat" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl">{winner.avatar}</span>
+                )}
               </span>
               <span className="text-foreground font-black">{winner.nickname}</span> survived!
             </p>
           )}
+
+          {/* Payout readout */}
+          {isWinner && myPayout > 0 ? (
+            <div className="mb-6 p-4 rounded-xl border-3 border-white bg-[#06060A] shadow-[3px_3px_0px_0px_#000000] text-center">
+              <span className="text-[10px] uppercase tracking-[0.15em] text-[#22C55E] font-display font-bold block mb-1">
+                🏆 Victory Payout Credited!
+              </span>
+              <span className="font-display font-black text-xl text-[#FFE234] block">
+                +{myPayout.toFixed(4)} XLM
+              </span>
+              <span className="text-[9px] text-muted-foreground font-medium block mt-1">
+                Sent to your connected wallet address
+              </span>
+              {myPayoutTx && (
+                <a
+                  href={`https://stellar.expert/explorer/testnet/tx/${myPayoutTx}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] text-[#A855F7] hover:text-[#C084FC] underline mt-2 block font-mono"
+                >
+                  Verify on Stellar.expert (Tx: {myPayoutTx.slice(0, 8)}...)
+                </a>
+              )}
+            </div>
+          ) : !isWinner ? (
+            <div className="mb-6 p-4 rounded-xl border-3 border-white bg-[#06060A] shadow-[3px_3px_0px_0px_#000000] text-center">
+              <span className="text-[10px] uppercase tracking-[0.15em] text-red-500 font-display font-bold block">
+                💥 Eliminated
+              </span>
+              <span className="text-xs text-muted-foreground font-medium block mt-1">
+                You exploded and received 0.00 XLM
+              </span>
+            </div>
+          ) : null}
 
           {/* Standings list */}
           <div className="space-y-2 mb-6">
@@ -58,8 +98,12 @@ export function FinishedOverlay({ players, myPlayer }: Props) {
                 >
                   {i === 0 ? '👑' : `#${i + 1}`}
                 </span>
-                <span className="text-lg bg-background/50 w-7 h-7 rounded-full flex items-center justify-center">
-                  {p.avatar}
+                <span className="bg-background/50 w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+                  {p.avatar.endsWith('.png') ? (
+                    <img src={`/${p.avatar}`} alt="Cat" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl">{p.avatar}</span>
+                  )}
                 </span>
                 <span
                   className={`flex-1 text-left font-bold text-xs truncate ${

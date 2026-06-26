@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Room, Player } from '@/lib/types'
+import { Horizon } from '@stellar/stellar-sdk'
 
 interface Props {
   code: string
@@ -12,6 +13,30 @@ interface Props {
 
 export function GameNavBar({ code, room, myPlayer }: Props) {
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const [balance, setBalance] = useState<string>('...')
+  const walletAddress = (myPlayer?.powers as any)?.wallet_address || ''
+
+  useEffect(() => {
+    if (!walletAddress) {
+      setBalance('0.00')
+      return
+    }
+    const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+    const fetchBalance = () => {
+      server.loadAccount(walletAddress)
+        .then(account => {
+          const native = account.balances.find(b => b.asset_type === 'native')
+          setBalance(native ? Number(native.balance).toFixed(2) : '0.00')
+        })
+        .catch(err => {
+          console.error('Failed to load wallet balance in nav bar:', err)
+        })
+    }
+    fetchBalance()
+    // Periodically update balance (e.g. every 10 seconds)
+    const interval = setInterval(fetchBalance, 10000)
+    return () => clearInterval(interval)
+  }, [walletAddress])
 
   // Countdown timer inside header to drive the danger level
   useEffect(() => {
@@ -130,20 +155,32 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
       {/* 3. Right Box: Wallet & Options Menu */}
       <div className="pointer-events-auto w-80 shrink-0 glass-panel glow-purple flex items-center justify-between px-3 h-full">
         {/* Wallet info */}
-        <div className="flex items-center gap-2 bg-black/40 border-2 border-black rounded-xl px-2.5 py-1 text-xs shadow-[2px_2px_0px_0px_#000]">
-          <span className="text-sm bg-[#FFE234] w-5 h-5 rounded-full flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000]">🐱</span>
-          <div className="flex flex-col text-left leading-tight">
-            <span className="font-black text-foreground text-[11px] tracking-wide">1.25 XLM</span>
-            <span className="text-[9px] font-bold text-muted-foreground select-all font-mono">GD...7J4K</span>
+        {walletAddress ? (
+          <div className="flex items-center gap-2 bg-black/40 border-2 border-black rounded-xl px-2.5 py-1 text-xs shadow-[2px_2px_0px_0px_#000]">
+            <span className="text-sm bg-[#FFE234] w-5 h-5 rounded-full flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000]">🐱</span>
+            <div className="flex flex-col text-left leading-tight">
+              <span className="font-black text-foreground text-[11px] tracking-wide">{balance} XLM</span>
+              <span className="text-[9px] font-bold text-muted-foreground select-all font-mono">
+                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+              </span>
+            </div>
+            <button
+              onClick={() => navigator.clipboard.writeText(walletAddress)}
+              className="text-[10px] text-muted-foreground hover:text-[#A855F7] transition-all ml-1 active:scale-95"
+              title="Copy Wallet Address"
+            >
+              📋
+            </button>
           </div>
-          <button
-            onClick={() => navigator.clipboard.writeText('GDSTLQWDX7J4K')}
-            className="text-[10px] text-muted-foreground hover:text-[#A855F7] transition-all ml-1 active:scale-95"
-            title="Copy Wallet Address"
-          >
-            📋
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-black/40 border-2 border-black rounded-xl px-2.5 py-1 text-xs shadow-[2px_2px_0px_0px_#000]">
+            <span className="text-sm bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000]">❌</span>
+            <div className="flex flex-col text-left leading-tight">
+              <span className="font-black text-foreground text-[11px] tracking-wide">No Wallet</span>
+              <span className="text-[9px] font-bold text-muted-foreground font-mono">Disconnected</span>
+            </div>
+          </div>
+        )}
 
         {/* Menu burger */}
         <button
