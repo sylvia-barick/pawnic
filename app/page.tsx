@@ -178,7 +178,7 @@ export default function LandingPage() {
       </div>
 
       <p className="mt-8 text-[10px] text-muted-foreground text-center max-w-xs leading-relaxed uppercase tracking-wider font-display font-bold">
-        2–8 players. Pass the potato bomb. Survive the explosion. Last cat standing wins.
+        2–8 players. Pass the neon cat. Survive the explosion. Last cat standing wins.
       </p>
     </main>
   )

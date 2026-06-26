@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'PAWnic – Hold. Pass. Survive.',
-  description: 'Real-time multiplayer party game. Pass the potato bomb, earn points, survive the explosion. Last cat standing wins.',
+  description: 'Real-time multiplayer party game. Pass the neon cat, earn points, survive the explosion. Last cat standing wins.',
   generator: 'v0.app',
 }
 

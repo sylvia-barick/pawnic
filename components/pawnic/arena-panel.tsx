@@ -146,7 +146,13 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
         {/* Dynamic game display layouts */}
         {room?.status === 'waiting' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
-            <div className="text-6xl animate-bomb-bounce">🥔</div>
+            <div className="animate-bomb-bounce w-40 h-40 relative flex items-center justify-center">
+              <img
+                src="/neon-cat.png"
+                alt="Neon Cat"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <p className="font-display text-muted-foreground text-sm uppercase tracking-widest font-black">
               Lobby: Waiting for players...
             </p>
@@ -196,7 +202,13 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                     >
                       {p.avatar}
                       {hasBomb && (
-                        <span className="absolute -top-1.5 -right-1.5 text-sm animate-bomb-bounce">🥔</span>
+                        <span className="absolute -top-2 -right-2 animate-bomb-bounce block w-6 h-6 z-20">
+                          <img
+                            src="/neon-cat.png"
+                            alt="Neon Cat"
+                            className="w-full h-full object-contain"
+                          />
+                        </span>
                       )}
                       {p.is_frozen && <span className="absolute -bottom-1 -right-1 text-xs">❄️</span>}
                       {p.shield_active && <span className="absolute -bottom-1 -left-1 text-xs">🛡️</span>}
@@ -217,7 +229,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
 
               {/* Central Glowing Cat Asset */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-24 h-24 rounded-full bg-cover bg-center border border-[#FF007F]/40 shadow-[0_0_25px_rgba(255,0,127,0.35)] animate-pulse overflow-hidden">
+                <div className="w-32 h-32 rounded-full bg-cover bg-center border border-[#FF007F]/40 shadow-[0_0_35px_rgba(255,0,127,0.5)] animate-pulse overflow-hidden">
                   <img
                     src="/neon-cat.png"
                     alt="Cursed Cat"

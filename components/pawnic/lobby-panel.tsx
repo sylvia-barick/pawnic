@@ -172,7 +172,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
       </div>
 
       {/* 3. Actions / Leave Room Card */}
-      <div className="space-y-2 shrink-0">
+      <div className="glass-panel glow-orange rounded-xl p-4 space-y-2 shrink-0">
         {msg && (
           <p className="text-xs text-[#FF007F] text-center bg-[#FF007F]/10 border border-[#FF007F]/20 px-2 py-1.5 rounded-lg font-display">
             {msg}
