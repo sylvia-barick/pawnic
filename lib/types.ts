@@ -1,6 +1,6 @@
 export type RoomStatus = 'waiting' | 'playing' | 'finished'
 export type EventType = 'chat' | 'pass' | 'power' | 'explode' | 'join' | 'start' | 'system'
-export type PowerType = 'shield' | 'freeze' | 'speed_pass' | 'double_points' | 'reverse' | 'time_bomb'
+export type PowerType = 'reverse' | 'freeze' | 'double_points' | 'smoke_screen' | 'nine_lives' | 'shield'
 
 export interface Room {
   id: string
@@ -28,7 +28,7 @@ export interface Player {
   shield_active: boolean
   double_points_until: string | null
   reverse_active: boolean
-  powers: Record<PowerType, number> // quantity owned
+  powers: Record<string, any> // quantity owned + active state metadata
   joined_at: string
 }
 
@@ -43,11 +43,11 @@ export interface GameEvent {
 }
 
 export const POWER_CATALOG: Record<PowerType, { name: string; description: string; cost: number; emoji: string }> = {
-  reverse:       { name: 'Mirror',        description: 'Reflect next transfer',                cost: 100, emoji: '🔮' },
-  freeze:        { name: 'Freeze',        description: 'Freeze target for 3s',                 cost: 80,  emoji: '❄️' },
-  double_points: { name: 'Catnip',        description: '2x score for 10s',                     cost: 60,  emoji: '🌿' },
-  speed_pass:    { name: 'Smoke Screen',  description: 'Hide holder for 4s',                   cost: 70,  emoji: '☁️' },
-  time_bomb:     { name: 'Nine Lives',    description: 'Survive one explosion',                cost: 150, emoji: '🐱' },
+  reverse:       { name: 'Mirror',        description: 'Reflects the next incoming POTATO back to the sender.', cost: 100, emoji: '🔮' },
+  freeze:        { name: 'Freeze',        description: 'Freezes a target player for 3 seconds so they can\'t pass or use powers.', cost: 80,  emoji: '❄️' },
+  double_points: { name: 'Catnip',        description: 'Doubles your point gain for 10 seconds while holding the POTATO.', cost: 60,  emoji: '🌿' },
+  smoke_screen:  { name: 'Smoke Screen',  description: 'Hides who is holding the POTATO from other players for 4 seconds.', cost: 70,  emoji: '☁️' },
+  nine_lives:    { name: 'Nine Lives',    description: 'Automatically saves you from one explosion once per match.', cost: 150, emoji: '🐱' },
   shield:        { name: 'Shield',        description: 'Bounce the bomb back to sender',       cost: 50,  emoji: '🛡️' },
 }
 

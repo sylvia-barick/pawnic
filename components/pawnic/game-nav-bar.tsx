@@ -29,18 +29,38 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
   }, [room?.explosion_at, room?.status])
 
   // Compute Danger Level and segment counts based on seconds remaining
-  let dangerText = 'CALM'
+  let dangerText = 'STABLE'
   let dangerColor = 'text-[#3B82F6]' // soft cyan-blue
   let filledSegments = 2
   let dangerBorderColor = 'glass-panel glow-blue'
-  let dangerBadgeBorderColor = 'border-[#3B82F6] text-[#3B82F6]'
 
-  if (room.status === 'playing') {
-    dangerText = 'UNSTABLE'
-    dangerColor = 'text-[#FF5F1F] animate-pulse'
-    filledSegments = 6
-    dangerBorderColor = 'glass-panel glow-orange animate-pulse'
-    dangerBadgeBorderColor = 'border-[#FF5F1F] text-[#FF5F1F] animate-pulse'
+  if (room.status === 'playing' && timeLeft !== null) {
+    if (timeLeft > 60) {
+      dangerText = 'STABLE'
+      dangerColor = 'text-[#3B82F6]'
+      filledSegments = 3
+      dangerBorderColor = 'glass-panel glow-blue'
+    } else if (timeLeft > 30) {
+      dangerText = 'NERVOUS'
+      dangerColor = 'text-[#FFE234]'
+      filledSegments = 5
+      dangerBorderColor = 'glass-panel glow-yellow'
+    } else if (timeLeft > 10) {
+      dangerText = 'UNSTABLE'
+      dangerColor = 'text-[#FF5F1F] animate-pulse'
+      filledSegments = 8
+      dangerBorderColor = 'glass-panel glow-orange animate-pulse'
+    } else {
+      dangerText = 'NUCLEAR'
+      dangerColor = 'text-[#FF007F] animate-pulse'
+      filledSegments = 10
+      dangerBorderColor = 'glass-panel glow-red animate-pulse'
+    }
+  } else if (room.status === 'finished') {
+    dangerText = 'FINISHED'
+    dangerColor = 'text-[#22C55E]'
+    filledSegments = 0
+    dangerBorderColor = 'glass-panel glow-green'
   }
 
   return (

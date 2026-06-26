@@ -23,6 +23,15 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
   const alivePlayers = players.filter(p => p.is_alive)
   const canStart = isHost && room.status === 'waiting' && players.length >= 2
 
+  const isSmokeScreenActive = players.some(p => {
+    const pPowers = (p.powers ?? {}) as Record<string, any>
+    const until = pPowers.smoke_screen_until
+    return until && new Date(until) > new Date()
+  })
+  const bombHolder = players.find(p => p.id === room.bomb_holder_id)
+  const isMeHolding = bombHolder?.user_id === userId
+  const shouldHideHolder = isSmokeScreenActive && !isMeHolding
+
   function handleStart() {
     setMsg('')
     startTransition(async () => {
@@ -104,17 +113,18 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
         <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1 select-none">
           {sortedPlayers.map((p, i) => {
             const hasBomb = room.bomb_holder_id === p.id
+            const showBombVisual = hasBomb && !shouldHideHolder
             const isMe = p.user_id === userId
             const isAlive = p.is_alive
             
             // Show status of the player
-            const playerStatus = !isAlive ? '💀 Eliminated' : hasBomb ? '🔥 Holding Cat!' : '💚 Safe'
+            const playerStatus = !isAlive ? '💀 Eliminated' : showBombVisual ? '🔥 Holding Cat!' : '💚 Safe'
 
             return (
               <div
                 key={p.id}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-all ${
-                  hasBomb
+                  showBombVisual
                     ? 'bg-[#FF007F]/8 border-[#FF007F]/40 shadow-[0_0_8px_rgba(255,0,127,0.15)]'
                     : isMe
                     ? 'bg-[#FF5F1F]/8 border-[#FF5F1F]/40 shadow-[0_0_8px_rgba(255,95,31,0.15)]'
@@ -129,7 +139,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
                 {/* Avatar */}
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-lg bg-background border ${
-                    hasBomb
+                    showBombVisual
                       ? 'border-[#FF007F] shadow-[0_0_6px_#FF007F]'
                       : isMe
                       ? 'border-[#FF5F1F] shadow-[0_0_6px_#FF5F1F]'
@@ -162,7 +172,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
                 </div>
 
                 {/* Status Badges */}
-                {p.is_frozen && <span className="text-[10px] shrink-0" title="Frozen">❄️</span>}
+                {p.is_frozen && p.frozen_until && new Date(p.frozen_until) > new Date() && <span className="text-[10px] shrink-0" title="Frozen">❄️</span>}
                 {p.shield_active && <span className="text-[10px] shrink-0" title="Shielded">🛡️</span>}
                 {!isAlive && <span className="text-[10px] shrink-0" title="Eliminated">💀</span>}
               </div>

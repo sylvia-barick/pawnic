@@ -100,40 +100,40 @@ export function useRoom(code: string) {
     return () => { supabase.removeChannel(channel) }
   }, [room?.id])
 
-  // Explosion countdown — only the current bomb holder fires explodeBomb
+  // Explosion countdown — any active visible client can trigger the explosion
   useEffect(() => {
-    if (!room?.explosion_at || room?.status !== 'playing') return
+    if (!room || !room.explosion_at || room.status !== 'playing') return
     const explosionTime = new Date(room.explosion_at).getTime()
-    const holderId = room.bomb_holder_id
-    const myPlayerId = myPlayer?.id
+    const roomId = room.id
 
     const interval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return
       const msLeft = explosionTime - Date.now()
-      if (msLeft <= 0 && !explodingRef.current && holderId === myPlayerId) {
+      if (msLeft <= 0 && !explodingRef.current) {
         explodingRef.current = true
-        explodeBomb(room.id).finally(() => {
+        explodeBomb(roomId).finally(() => {
           setTimeout(() => { explodingRef.current = false }, 2000)
         })
       }
     }, 200)
 
     return () => clearInterval(interval)
-  }, [room?.explosion_at, room?.status, room?.bomb_holder_id, myPlayer?.id, room?.id])
+  }, [room?.explosion_at, room?.status, room?.id])
 
-  // Points accumulation timer — only the current bomb holder increments points every second
+  // Points accumulation timer — any active visible client drives this
   useEffect(() => {
-    if (room?.status !== 'playing') return
-    const holderId = room.bomb_holder_id
-    const myPlayerId = myPlayer?.id
+    if (!room || room.status !== 'playing' || !room.bomb_holder_id) return
 
-    if (!holderId || holderId !== myPlayerId) return
+    const roomId = room.id
+    const holderId = room.bomb_holder_id
 
     const interval = setInterval(() => {
-      incrementHolderPoints(room.id, myPlayerId)
+      if (document.visibilityState !== 'visible') return
+      incrementHolderPoints(roomId, holderId)
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [room?.status, room?.bomb_holder_id, myPlayer?.id, room?.id])
+  }, [room?.status, room?.bomb_holder_id, room?.id])
 
   return {
     room,

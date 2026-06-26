@@ -86,7 +86,18 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
   }
 
   const alivePlayers = players.filter(p => p.is_alive)
+  
+  // Hides who is holding the POTATO from other players for 4 seconds if Smoke Screen is active
+  const isSmokeScreenActive = players.some(p => {
+    const pPowers = (p.powers ?? {}) as Record<string, any>
+    const until = pPowers.smoke_screen_until
+    return until && new Date(until) > new Date()
+  })
+
   const bombHolder = players.find(p => p.id === room?.bomb_holder_id)
+  const isMeHolding = bombHolder?.user_id === userId
+  const shouldHideHolder = isSmokeScreenActive && !isMeHolding
+
   const iHaveBomb = room?.bomb_holder_id === myPlayer?.id
   const isFrozen = !!(myPlayer?.is_frozen && myPlayer.frozen_until && new Date(myPlayer.frozen_until) > new Date())
 
@@ -95,11 +106,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
     { key: 'reverse', name: 'Mirror', emoji: '🔮' },
     { key: 'freeze', name: 'Freeze', emoji: '❄️' },
     { key: 'double_points', name: 'Catnip', emoji: '🌿' },
-    { key: 'speed_pass', name: 'Smoke Screen', emoji: '☁️' },
-    { key: 'time_bomb', name: 'Nine Lives', emoji: '🐱' },
+    { key: 'smoke_screen', name: 'Smoke Screen', emoji: '☁️' },
+    { key: 'nine_lives', name: 'Nine Lives', emoji: '🐱' },
   ]
 
-  const myPowers = (myPlayer?.powers ?? {}) as Record<PowerType, number>
+  const myPowers = (myPlayer?.powers ?? {}) as Record<string, any>
   const angleStep = alivePlayers.length > 1 ? (2 * Math.PI) / alivePlayers.length : 0
 
   return (
@@ -121,7 +132,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
         {/* Card Header (HUD display inside Arena Panel) */}
         {room?.status === 'playing' && (
           <div className="flex justify-between items-start w-full z-10 shrink-0">
-            {/* Explodes in timer - Hidden */}
+            {/* Explodes in timer - Ticking */}
             <div className="flex flex-col text-right leading-tight bg-black/40 border border-border/50 rounded-lg px-3 py-1.5 backdrop-blur-sm animate-pulse">
               <span className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">
                 Fuse Status
@@ -137,7 +148,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                 Holder
               </span>
               <span className="font-display font-black text-sm text-[#EAB308] mt-0.5">
-                {bombHolder ? `${bombHolder.nickname}${bombHolder.user_id === userId ? ' (You)' : ''}` : '--'}
+                {shouldHideHolder
+                  ? '☁️ Hidden'
+                  : bombHolder
+                  ? `${bombHolder.nickname}${bombHolder.user_id === userId ? ' (You)' : ''}`
+                  : '--'}
               </span>
             </div>
           </div>
@@ -177,6 +192,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                 const x = Math.cos(angle) * r + 150 - 26
                 const y = Math.sin(angle) * r + 150 - 26
                 const hasBomb = p.id === room?.bomb_holder_id
+                const showBombVisual = hasBomb && !shouldHideHolder
                 const isMe = p.user_id === userId
                 const canPass = iHaveBomb && !isMe && !isFrozen && !isPending
 
@@ -190,7 +206,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                       onClick={() => canPass && handlePass(p.id)}
                       disabled={!canPass}
                       className={`w-11 h-11 rounded-full text-xl flex items-center justify-center border-2 transition-all relative ${
-                        hasBomb
+                        showBombVisual
                           ? 'border-[#FF007F] animate-pulse shadow-[0_0_15px_#FF007F]'
                           : canPass
                           ? 'border-[#06B6D4] hover:scale-110 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]'
@@ -201,7 +217,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                       title={canPass ? `Pass bomb to ${p.nickname}` : p.nickname}
                     >
                       {p.avatar}
-                      {hasBomb && (
+                      {showBombVisual && (
                         <span className="absolute -top-2 -right-2 animate-bomb-bounce block w-6 h-6 z-20">
                           <img
                             src="/neon-cat.png"
@@ -210,7 +226,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
                           />
                         </span>
                       )}
-                      {p.is_frozen && <span className="absolute -bottom-1 -right-1 text-xs">❄️</span>}
+                      {p.is_frozen && p.frozen_until && new Date(p.frozen_until) > new Date() && <span className="absolute -bottom-1 -right-1 text-xs">❄️</span>}
                       {p.shield_active && <span className="absolute -bottom-1 -left-1 text-xs">🛡️</span>}
                     </button>
                     <span

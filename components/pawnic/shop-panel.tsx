@@ -15,11 +15,11 @@ interface Props {
 
 // In the mockup, these 5 abilities are presented in the shop:
 const POWERS: { key: PowerType; name: string; description: string; cost: number; emoji: string }[] = [
-  { key: 'reverse', name: 'Mirror', description: 'Reflect next transfer', cost: 100, emoji: '🔮' },
-  { key: 'freeze', name: 'Freeze', description: 'Freeze target for 3s', cost: 80, emoji: '❄️' },
-  { key: 'double_points', name: 'Catnip', description: '2x score for 10s', cost: 60, emoji: '🌿' },
-  { key: 'speed_pass', name: 'Smoke Screen', description: 'Hide holder for 4s', cost: 70, emoji: '☁️' },
-  { key: 'time_bomb', name: 'Nine Lives', description: 'Survive one explosion', cost: 150, emoji: '🐱' },
+  { key: 'reverse', name: 'Mirror', description: 'Reflects the next incoming POTATO back to the sender.', cost: 100, emoji: '🔮' },
+  { key: 'freeze', name: 'Freeze', description: 'Freezes a target player for 3 seconds so they can\'t pass or use powers.', cost: 80, emoji: '❄️' },
+  { key: 'double_points', name: 'Catnip', description: 'Doubles your point gain for 10 seconds while holding the POTATO.', cost: 60, emoji: '🌿' },
+  { key: 'smoke_screen', name: 'Smoke Screen', description: 'Hides who is holding the POTATO from other players for 4 seconds.', cost: 70, emoji: '☁️' },
+  { key: 'nine_lives', name: 'Nine Lives', description: 'Automatically saves you from one explosion once per match.', cost: 150, emoji: '🐱' },
 ]
 
 export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
