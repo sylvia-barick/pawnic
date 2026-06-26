@@ -84,7 +84,7 @@ export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex flex-col gap-2 h-full">
       {/* 1. Room Activity Timeline Log */}
       <div className="glass-panel glow-purple rounded-xl p-4 flex-1 overflow-hidden flex flex-col min-h-0">
         <div className="flex items-center gap-2 border-b border-border/50 pb-2 mb-3 shrink-0">

@@ -41,7 +41,7 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points)
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex flex-col gap-2 h-full">
       {/* 1. Room Info Card */}
       <div className="glass-panel glow-orange rounded-xl p-4 flex flex-col shrink-0">
         <div className="flex items-center gap-2 border-b border-border/50 pb-2 mb-3">

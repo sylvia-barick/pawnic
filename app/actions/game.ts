@@ -23,7 +23,7 @@ export async function createRoom(userId: string, nickname: string, avatar: strin
 
   const { error: playerError } = await supabase
     .from('players')
-    .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: {} })
+    .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: {}, points: 100 })
 
   if (playerError) return { error: playerError.message }
 
@@ -65,7 +65,7 @@ export async function joinRoom(userId: string, code: string, nickname: string, a
 
     const { error: playerError } = await supabase
       .from('players')
-      .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: {} })
+      .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: {}, points: 100 })
 
     if (playerError) return { error: playerError.message }
 

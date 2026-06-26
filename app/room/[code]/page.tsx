@@ -15,7 +15,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background cyber-grid flex items-center justify-center">
+      <div className="min-h-screen bg-transparent cyber-grid flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div
             className="w-12 h-12 rounded-full border-2 animate-spin"
@@ -31,7 +31,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
 
   if (error || !room) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="glass-panel rounded-2xl p-8 text-center max-w-sm">
           <p className="text-red-400 font-display text-lg mb-4">{error ?? 'Room not found'}</p>
           <a
@@ -46,12 +46,12 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   }
 
   return (
-    <div className="flex flex-col bg-background" style={{ height: '100dvh', overflow: 'hidden' }}>
+    <div className="flex flex-col bg-transparent" style={{ height: '100dvh', overflow: 'hidden' }}>
       <GameNavBar code={code} room={room} myPlayer={gameState.myPlayer} />
 
       <main
-        className="flex gap-3 px-3 pb-3 pt-3 bg-background"
-        style={{ marginTop: '54px', height: 'calc(100dvh - 54px)', overflow: 'hidden' }}
+        className="flex gap-2 px-2 pb-2 pt-2 bg-transparent"
+        style={{ marginTop: '74px', height: 'calc(100dvh - 74px)', overflow: 'hidden' }}
       >
         {/* Left: room info + player roster */}
         <div className="w-72 shrink-0 flex flex-col overflow-hidden">

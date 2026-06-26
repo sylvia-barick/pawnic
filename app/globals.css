@@ -100,14 +100,17 @@
     border-color: var(--border);
   }
   body {
-    background-color: var(--background);
+    background: url('/back.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
     color: var(--foreground);
     font-family: 'Space Grotesk', sans-serif;
   }
   html {
-    background-color: var(--background);
+    background: #020204 !important;
   }
 }
+
+
 
 /* Scrollbar */
 ::-webkit-scrollbar {
@@ -127,43 +130,52 @@
 
 /* Neon Panel Custom Borders & Bold Solid Shadows */
 .glass-panel {
-  background: #0E0E18 !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #11111c 100%) !important;
   backdrop-filter: none !important;
-  border: 3px solid #FFFFFF !important;
+  border: 3px solid #000000 !important;
   box-shadow: 4px 4px 0px 0px #000000 !important;
   border-radius: 12px !important;
   color: #F8FAFC !important;
 }
 
-/* Bold colored borders with solid offset shadows */
+/* Bold colored borders with solid offset shadows and custom box-specific gradients */
 .glow-orange {
-  border: 3px solid #FF5F1F !important;
-  box-shadow: 4px 4px 0px 0px #FF5F1F !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #FF5F1F !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #1e110b 100%) !important;
+}
+.glow-yellow {
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #FFE234 !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #1c1a0b 100%) !important;
 }
 .glow-purple {
-  border: 3px solid #A855F7 !important;
-  box-shadow: 4px 4px 0px 0px #A855F7 !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #A855F7 !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #150b24 100%) !important;
 }
 .glow-blue {
-  border: 3px solid #3B82F6 !important;
-  box-shadow: 4px 4px 0px 0px #3B82F6 !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #3B82F6 !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #0a1124 100%) !important;
 }
 .glow-red {
-  border: 3px solid #FF007F !important;
-  box-shadow: 4px 4px 0px 0px #FF007F !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #FF007F !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #210a14 100%) !important;
 }
 .glow-cyan {
-  border: 3px solid #06B6D4 !important;
-  box-shadow: 4px 4px 0px 0px #06B6D4 !important;
+  border: 4px solid #000000 !important;
+  box-shadow: 5px 5px 0px 0px #06B6D4 !important;
+  background: linear-gradient(135deg, #0d0d16 0%, #06161a 100%) !important;
 }
 
-/* Grid Background */
 .cyber-grid {
-  background-color: var(--background);
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 30px 30px;
+  background-size: 30px 30px, 30px 30px;
+  background-attachment: fixed;
 }
 
 /* Brand Text styles */
@@ -310,8 +322,13 @@ button[style*="color:oklch(0.80 0.18 195)"] {
 
 /* Arena card styling */
 .cyber-grid.glass-panel {
-  background-color: #0E0E18 !important;
-  border: 3px solid #3B82F6 !important;
+  background: 
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(135deg, #0d0d16 0%, #0a1124 100%) !important;
+  background-size: 30px 30px, 30px 30px, 100% 100% !important;
+  background-attachment: fixed !important;
+  border: 3px solid #000000 !important;
   box-shadow: 5px 5px 0px 0px #3B82F6 !important;
 }
 

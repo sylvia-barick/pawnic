@@ -103,7 +103,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
   const angleStep = alivePlayers.length > 1 ? (2 * Math.PI) / alivePlayers.length : 0
 
   return (
-    <div className="flex flex-col gap-3 h-full">
+    <div className="flex flex-col gap-2 h-full">
       {/* 1. Main Game Arena Card */}
       <div className="glass-panel glow-blue rounded-xl flex-1 min-h-0 relative overflow-hidden cyber-grid flex flex-col p-4">
         {/* Explosion Overlay */}
@@ -294,7 +294,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId }: Props) {
       )}
 
       {/* 2. Bottom row split: Abilities Panel & Chat Panel */}
-      <div className="flex gap-3 shrink-0 h-44">
+      <div className="flex gap-2 shrink-0 h-44">
         {/* Left column: Abilities console (5 slots) */}
         <div className="glass-panel glow-purple rounded-xl p-3 flex-1 flex flex-col justify-between">
           <span className="font-display text-[10px] uppercase tracking-widest text-muted-foreground text-left font-black block border-b border-border/50 pb-1 mb-2">

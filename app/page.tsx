@@ -61,7 +61,7 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen cyber-grid flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background font-sans select-none">
+    <main className="min-h-screen cyber-grid flex flex-col items-center justify-center p-4 relative overflow-hidden bg-transparent font-sans select-none">
       {/* Dynamic ambient shadows (no blur glows) */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none bg-[#FF5F1F]/2" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none bg-[#A855F7]/2" />
