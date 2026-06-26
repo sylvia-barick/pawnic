@@ -175,8 +175,8 @@
   font-weight: 900 !important;
 }
 .text-brand-glow {
-  color: #000000 !important;
-  text-shadow: 3px 3px 0px #FF5F1F !important;
+  color: #FF5F1F !important;
+  text-shadow: none !important;
   font-weight: 900 !important;
 }
 
@@ -399,7 +399,7 @@ button[class*="hover:text-red-400"]:hover {
 }
 .fixed.z-50 .glass-panel h2 {
   color: #000000 !important;
-  text-shadow: 3px 3px 0px #FF5F1F !important;
+  text-shadow: none !important;
   font-weight: 900 !important;
 }
 
