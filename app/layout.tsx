@@ -1,17 +1,12 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist_Mono, Orbitron, Rajdhani } from 'next/font/google'
+import { Geist_Mono, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 
-const orbitron = Orbitron({
-  variable: '--font-orbitron',
+const spaceGrotesk = Space_Grotesk({
+  variable: '--font-space-grotesk',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-})
-const rajdhani = Rajdhani({
-  variable: '--font-rajdhani',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
 })
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -25,8 +20,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
-  themeColor: '#0a0a14',
+  colorScheme: 'light',
+  themeColor: '#FFFDF0',
 }
 
 export default function RootLayout({
@@ -37,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${orbitron.variable} ${rajdhani.variable} ${geistMono.variable} bg-background`}
+      className={`${spaceGrotesk.variable} ${geistMono.variable} bg-background`}
     >
       <body className="antialiased">
         {children}
