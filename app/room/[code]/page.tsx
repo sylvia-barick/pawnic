@@ -17,7 +17,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     return (
       <div className="min-h-screen bg-transparent cyber-grid flex items-center justify-center">
         <div className="flex flex-col items-center gap-5">
-          <div className="w-80 h-80 rounded-2xl overflow-hidden border border-[#FF007F]/45 shadow-[0_0_32px_rgba(255,0,127,0.45)] flex items-center justify-center bg-black/60">
+          <div className="w-80 h-80 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center bg-black/60">
             <video
               src="/cawt.mp4"
               autoPlay
