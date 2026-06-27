@@ -449,7 +449,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                   className={`flex-1 flex flex-col items-center justify-center py-3 border rounded-xl h-full transition-all relative ${
                     canUse
                       ? 'bg-black/40 border-[1px] hover:scale-105 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                      : 'bg-black/20 border-dashed border-white/5 opacity-25 cursor-not-allowed'
+                      : 'bg-black/15 border-white/5 opacity-60 cursor-not-allowed'
                   }`}
                   style={canUse ? { borderColor: meta.border, boxShadow: `0 0 12px ${meta.border.replace('0.4', '0.15')}` } : {}}
                   title={`${slot.name} (Owned: ${ownedCount})`}
@@ -462,13 +462,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                   {/* Icon with animation if owned */}
                   {(() => {
                     const SlotIcon = slot.icon
-                    return canUse ? (
+                    return (
                       <SlotIcon
                         className={`w-5 h-5 my-1.5 ${canUse ? 'animate-pulse-blue' : ''}`}
                         style={{ color: meta.text.replace('text-[', '').replace(']', '') }}
                       />
-                    ) : (
-                      <Lock className="w-4 h-4 text-muted-foreground/30 my-1.5" />
                     )
                   })()}
 
