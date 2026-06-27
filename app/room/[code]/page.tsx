@@ -16,13 +16,19 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   if (loading) {
     return (
       <div className="min-h-screen bg-transparent cyber-grid flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="w-12 h-12 rounded-full border-2 animate-spin"
-            style={{ borderColor: 'oklch(0.70 0.22 45)', borderTopColor: 'transparent' }}
-          />
-          <p className="font-display text-muted-foreground tracking-widest text-sm uppercase">
-            Joining room...
+        <div className="flex flex-col items-center gap-5">
+          <div className="w-44 h-44 rounded-full overflow-hidden border border-[#FF007F]/45 shadow-[0_0_32px_rgba(255,0,127,0.45)] flex items-center justify-center bg-black/60">
+            <video
+              src="/cawt.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover scale-110"
+            />
+          </div>
+          <p className="font-display text-muted-foreground tracking-[0.25em] text-xs uppercase font-black animate-pulse">
+            Connecting to Arena...
           </p>
         </div>
       </div>
