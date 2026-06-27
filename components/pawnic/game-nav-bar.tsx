@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Room, Player } from '@/lib/types'
 import { Horizon } from '@stellar/stellar-sdk'
+import { Wallet, Copy, Menu, Flame, Zap, ShieldAlert, ShieldCheck, CheckCircle, CircleX } from 'lucide-react'
 
 interface Props {
   code: string
@@ -95,7 +96,9 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
         href="/"
         className="pointer-events-auto w-72 shrink-0 glass-panel glow-orange flex items-center justify-center gap-3 h-full hover:translate-y-0.5 transition-all"
       >
-        <span className="text-xl animate-bomb-bounce">🐾</span>
+        <span className="w-6 h-6 rounded bg-black/45 border border-white/5 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+          <img src="/paw-logo-room.png" alt="Logo" className="w-full h-full object-cover" />
+        </span>
         <span className="font-display font-black text-xl tracking-widest text-[#F8FAFC]">
           PAW<span className="text-[#FF5F1F]">nic</span>
         </span>
@@ -147,8 +150,18 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
             })}
           </div>
         </div>
-        <div className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 border-black bg-black/40 text-sm shadow-[1.5px_1.5px_0px_0px_#000000] ${dangerColor}`}>
-          {dangerText === 'NUCLEAR' ? '🙀' : dangerText === 'RABID' ? '😾' : dangerText === 'ANGRY' || dangerText === 'UNSTABLE' ? '🙀' : '😸'}
+        <div className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 border-black bg-black/40 shadow-[1.5px_1.5px_0px_0px_#000000] ${dangerColor}`}>
+          {dangerText === 'NUCLEAR' ? (
+            <Flame className="w-4 h-4 text-[#FF007F] animate-pulse" />
+          ) : dangerText === 'UNSTABLE' || dangerText === 'ANGRY' ? (
+            <Zap className="w-4 h-4 text-[#FF5F1F]" />
+          ) : dangerText === 'NERVOUS' ? (
+            <ShieldAlert className="w-4 h-4 text-[#FFE234]" />
+          ) : dangerText === 'FINISHED' ? (
+            <CheckCircle className="w-4 h-4 text-[#22C55E]" />
+          ) : (
+            <ShieldCheck className="w-4 h-4 text-[#3B82F6]" />
+          )}
         </div>
       </div>
 
@@ -157,7 +170,9 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
         {/* Wallet info */}
         {walletAddress ? (
           <div className="flex items-center gap-2 bg-black/40 border-2 border-black rounded-xl px-2.5 py-1 text-xs shadow-[2px_2px_0px_0px_#000]">
-            <span className="text-sm bg-[#FFE234] w-5 h-5 rounded-full flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000]">🐱</span>
+            <span className="bg-[#FFE234] w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000] text-black">
+              <Wallet className="w-3 h-3" />
+            </span>
             <div className="flex flex-col text-left leading-tight">
               <span className="font-black text-foreground text-[11px] tracking-wide">{balance} XLM</span>
               <span className="text-[9px] font-bold text-muted-foreground select-all font-mono">
@@ -166,15 +181,17 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
             </div>
             <button
               onClick={() => navigator.clipboard.writeText(walletAddress)}
-              className="text-[10px] text-muted-foreground hover:text-[#A855F7] transition-all ml-1 active:scale-95"
+              className="text-[10px] text-muted-foreground hover:text-[#A855F7] transition-all ml-1 active:scale-95 flex items-center justify-center"
               title="Copy Wallet Address"
             >
-              📋
+              <Copy className="w-3 h-3" />
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2 bg-black/40 border-2 border-black rounded-xl px-2.5 py-1 text-xs shadow-[2px_2px_0px_0px_#000]">
-            <span className="text-sm bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000]">❌</span>
+            <span className="bg-red-500 w-5 h-5 rounded-lg flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0px_0px_#000] text-white">
+              <CircleX className="w-3 h-3" />
+            </span>
             <div className="flex flex-col text-left leading-tight">
               <span className="font-black text-foreground text-[11px] tracking-wide">No Wallet</span>
               <span className="text-[9px] font-bold text-muted-foreground font-mono">Disconnected</span>
@@ -187,7 +204,7 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
           className="w-8 h-8 rounded-xl flex items-center justify-center border-2 border-black bg-white/5 hover:bg-white/10 hover:border-black active:translate-y-0.5 transition-all shrink-0 shadow-[2px_2px_0px_0px_#000000]"
           title="Menu"
         >
-          <span className="text-sm font-black text-foreground">☰</span>
+          <Menu className="w-4 h-4 text-foreground" />
         </button>
       </div>
     </header>

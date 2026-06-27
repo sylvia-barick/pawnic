@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition, useRef } from 'react'
 import { passBomb, sendChatMessage, usePower } from '@/app/actions/game'
 import type { Room, Player, GameEvent, PowerType } from '@/lib/types'
+import { ShieldAlert, Snowflake, Sparkles, EyeOff, Heart, Lock, Coins, Flame, Cloud, Smile } from 'lucide-react'
 
 interface Props {
   room: Room | null
@@ -12,6 +13,14 @@ interface Props {
   userId: string
   reactions: { id: string; playerId: string; emoji: string; xOffset: number }[]
   sendReaction: (emoji: string) => void
+}
+
+const abilityColors: Record<PowerType, { bg: string; border: string; text: string }> = {
+  reverse: { bg: 'rgba(168, 85, 247, 0.05)', border: 'rgba(168, 85, 247, 0.4)', text: 'text-[#A855F7]' },
+  freeze: { bg: 'rgba(6, 182, 212, 0.05)', border: 'rgba(6, 182, 212, 0.4)', text: 'text-[#06B6D4]' },
+  double_points: { bg: 'rgba(34, 197, 94, 0.05)', border: 'rgba(34, 197, 94, 0.4)', text: 'text-[#22C55E]' },
+  smoke_screen: { bg: 'rgba(148, 163, 184, 0.05)', border: 'rgba(148, 163, 184, 0.4)', text: 'text-slate-400' },
+  nine_lives: { bg: 'rgba(255, 0, 127, 0.05)', border: 'rgba(255, 0, 127, 0.4)', text: 'text-[#FF007F]' },
 }
 
 export function ArenaPanel({ room, players, events, myPlayer, userId, reactions, sendReaction }: Props) {
@@ -124,21 +133,21 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
   const isFrozen = !!(myPlayer?.is_frozen && myPlayer.frozen_until && new Date(myPlayer.frozen_until) > new Date())
 
   // Ability slots config mapped to the mockup descriptions & actions
-  const abilitySlots: { key: PowerType; name: string; emoji: string }[] = [
-    { key: 'reverse', name: 'Mirror', emoji: '🔮' },
-    { key: 'freeze', name: 'Freeze', emoji: '❄️' },
-    { key: 'double_points', name: 'Catnip', emoji: '🌿' },
-    { key: 'smoke_screen', name: 'Smoke Screen', emoji: '☁️' },
-    { key: 'nine_lives', name: 'Nine Lives', emoji: '🐱' },
+  const abilitySlots: { key: PowerType; name: string; icon: React.ComponentType<any> }[] = [
+    { key: 'reverse', name: 'Mirror', icon: ShieldAlert },
+    { key: 'freeze', name: 'Freeze', icon: Snowflake },
+    { key: 'double_points', name: 'Catnip', icon: Sparkles },
+    { key: 'smoke_screen', name: 'Smoke Screen', icon: EyeOff },
+    { key: 'nine_lives', name: 'Nine Lives', icon: Heart },
   ]
 
   const myPowers = (myPlayer?.powers ?? {}) as Record<string, any>
   const angleStep = alivePlayers.length > 1 ? (2 * Math.PI) / alivePlayers.length : 0
 
   return (
-    <div className="flex flex-col gap-2 h-full">
+    <div className="flex flex-col gap-4 h-full">
       {/* 1. Main Game Arena Card */}
-      <div className="glass-panel glow-blue rounded-xl flex-1 min-h-0 relative overflow-hidden cyber-grid flex flex-col p-4">
+      <div className="glass-panel glow-blue rounded-2xl flex-1 min-h-0 relative overflow-hidden cyber-grid flex flex-col p-5">
         {/* Explosion Overlay */}
         {showExplosion && (
           <div
@@ -155,26 +164,32 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         {room?.status === 'playing' && (
           <div className="flex justify-between items-start w-full z-10 shrink-0">
             {/* Explodes in timer - Ticking */}
-            <div className="flex flex-col text-right leading-tight bg-black/40 border border-border/50 rounded-lg px-3 py-1.5 backdrop-blur-sm animate-pulse">
-              <span className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">
+            <div className="flex flex-col text-left leading-tight bg-black/60 border border-[#FF5F1F]/25 rounded-xl px-4 py-2 backdrop-blur-md shadow-[0_0_16px_rgba(255,95,31,0.12)]">
+              <span className="font-display text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-black">
                 Fuse Status
               </span>
-              <span className="font-display font-black text-sm text-[#FF5F1F] font-mono mt-0.5">
-                💣 TICKING
+              <span className="font-display font-black text-base text-[#FF5F1F] font-mono mt-1 flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-[#FF5F1F] animate-pulse" />
+                TICKING
               </span>
             </div>
 
             {/* Current Holder Name */}
-            <div className="flex flex-col text-right leading-tight bg-black/40 border border-border/50 rounded-lg px-3 py-1.5 backdrop-blur-sm">
-              <span className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">
+            <div className="flex flex-col text-right leading-tight bg-black/60 border border-[#EAB308]/25 rounded-xl px-4 py-2 backdrop-blur-md shadow-[0_0_16px_rgba(234,179,8,0.12)]">
+              <span className="font-display text-[9px] uppercase tracking-[0.2em] text-muted-foreground font-black">
                 Holder
               </span>
-              <span className="font-display font-black text-sm text-[#EAB308] mt-0.5">
-                {shouldHideHolder
-                  ? '☁️ Hidden'
-                  : bombHolder
-                  ? `${bombHolder.nickname}${bombHolder.user_id === userId ? ' (You)' : ''}`
-                  : '--'}
+              <span className="font-display font-black text-base text-[#EAB308] mt-1 flex items-center justify-end gap-1.5">
+                {shouldHideHolder ? (
+                  <>
+                    <Cloud className="w-4 h-4 text-slate-400" />
+                    <span className="text-slate-400">Hidden</span>
+                  </>
+                ) : bombHolder ? (
+                  `${bombHolder.nickname}${bombHolder.user_id === userId ? ' (You)' : ''}`
+                ) : (
+                  '--'
+                )}
               </span>
             </div>
           </div>
@@ -195,7 +210,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
             </p>
             <p className="text-xs text-muted-foreground">
               Share code{' '}
-              <span className="text-[#FF5F1F] font-display font-bold select-all bg-black/30 border border-border/30 px-2 py-0.5 rounded">
+              <span className="text-[#FF5F1F] font-display font-bold select-all bg-black/40 border border-white/10 px-2.5 py-1 rounded-lg">
                 {room?.code}
               </span>{' '}
               to invite
@@ -207,6 +222,48 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
           <div className="flex-1 w-full relative flex items-center justify-center min-h-0 select-none">
             {/* Circular active players loop wrapper */}
             <div className="relative" style={{ width: 300, height: 300 }}>
+              
+              {/* Central Holographic Arena floor details */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="arena-hologram-floor flex items-center justify-center">
+                  <div className="arena-hologram-ring-outer flex items-center justify-center">
+                    <div className="arena-hologram-ring-inner" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Laser wires connecting players to center */}
+              {alivePlayers.map((p, i) => {
+                const angle = angleStep * i - Math.PI / 2
+                const r = alivePlayers.length <= 3 ? 95 : 115
+                const hasBomb = p.id === room?.bomb_holder_id
+                const showBombVisual = hasBomb && !shouldHideHolder
+                return (
+                  <div
+                    key={`laser-${p.id}`}
+                    className={`arena-laser-line ${showBombVisual ? 'active' : ''}`}
+                    style={{
+                      width: r,
+                      left: 150,
+                      top: 150,
+                      transform: `rotate(${angle}rad)`,
+                      opacity: showBombVisual ? 0.65 : 0.2,
+                    }}
+                  />
+                )
+              })}
+
+              {/* Central Glowing Cat Asset */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-32 h-32 rounded-full bg-cover bg-center border border-[#FF007F]/45 shadow-[0_0_40px_rgba(255,0,127,0.65)] animate-glow-pulse overflow-hidden flex items-center justify-center bg-black/60">
+                  <img
+                    src="/neon-cat.png"
+                    alt="Cursed Cat"
+                    className="w-24 h-24 object-contain animate-bomb-bounce scale-105"
+                  />
+                </div>
+              </div>
+
               {/* Loop layout of players around the cat */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
@@ -223,7 +280,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 return (
                   <div
                     key={p.id}
-                    className="absolute flex flex-col items-center gap-1 z-10"
+                    className="absolute flex flex-col items-center justify-center gap-1.5 z-10"
                     style={{ left: x, top: y, width: 68 }}
                   >
                     {/* Floating Reactions */}
@@ -288,17 +345,6 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                   </div>
                 )
               })}
-
-              {/* Central Glowing Cat Asset */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-32 h-32 rounded-full bg-cover bg-center border border-[#FF007F]/40 shadow-[0_0_35px_rgba(255,0,127,0.5)] animate-pulse overflow-hidden">
-                  <img
-                    src="/neon-cat.png"
-                    alt="Cursed Cat"
-                    className="w-full h-full object-cover scale-105"
-                  />
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -313,19 +359,19 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
         {/* Card Footer (HUD display inside Arena Panel) */}
         {room?.status === 'playing' && (
-          <div className="flex justify-between items-center w-full z-10 shrink-0 border-t border-border/40 pt-2 mb-0.5">
+          <div className="flex justify-between items-center w-full z-10 shrink-0 border-t border-white/5 pt-3">
             <button
               onClick={() => alert('Leaderboard is displayed on the left side.')}
-              className="px-3 py-1 bg-white/5 border border-border/80 hover:bg-white/10 rounded-lg text-[10px] font-display font-bold uppercase tracking-wider transition-colors"
+              className="px-3.5 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-display font-bold uppercase tracking-wider transition-colors text-white"
             >
               View Leaderboard
             </button>
-            <div className="flex items-center gap-1.5 bg-[#0E0E18] border border-border/60 rounded-lg px-3 py-1 text-xs font-mono font-bold">
+            <div className="flex items-center gap-1.5 bg-[#0E0E18] border border-white/5 rounded-xl px-3 py-1.5 text-xs font-mono font-bold">
               <span className="text-muted-foreground font-display font-bold text-[9px] uppercase tracking-wider mr-1">
                 Ability Coins
               </span>
               <span className="text-[#FF5F1F] font-black">{myPlayer?.points ?? 0}</span>
-              <span>🐾</span>
+              <Coins className="w-3.5 h-3.5 text-[#EAB308]" title="Ability Coins" />
             </div>
           </div>
         )}
@@ -333,11 +379,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
       {/* Target selector popup for Freezing ability */}
       {selectingFreeze && (
-        <div className="glass-panel glow-purple rounded-xl p-3 border shrink-0">
+        <div className="glass-panel glow-purple rounded-2xl p-4 border shrink-0">
           <p className="font-display text-xs uppercase tracking-widest text-[#06B6D4] font-black mb-2 text-left">
             Choose Target to Freeze:
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {players
               .filter(p => p.is_alive && p.user_id !== userId)
               .map(p => (
@@ -345,7 +391,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                   key={p.id}
                   onClick={() => handleUseAbility('freeze', p.id)}
                   disabled={isPending}
-                  className="flex items-center gap-2 px-2.5 py-1.5 bg-white/3 border border-border/60 hover:bg-[#06B6D4]/10 hover:border-[#06B6D4] rounded-lg text-xs transition-all"
+                  className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 hover:bg-[#06B6D4]/10 hover:border-[#06B6D4] rounded-xl text-xs transition-all text-white"
                 >
                   <span className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center bg-background/50">
                     {p.avatar.endsWith('.png') ? (
@@ -359,7 +405,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               ))}
             <button
               onClick={() => setSelectingFreeze(false)}
-              className="px-3 py-1.5 text-xs text-muted-foreground hover:text-white transition-colors"
+              className="px-4 py-2 text-xs text-muted-foreground hover:text-white transition-colors"
             >
               Cancel
             </button>
@@ -368,23 +414,27 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
       )}
 
       {errorMsg && (
-        <p className="text-xs text-[#FF007F] font-display bg-[#FF007F]/10 border border-[#FF007F]/20 px-2 py-1 rounded shrink-0 text-left">
+        <p className="text-xs text-[#FF007F] font-display bg-[#FF007F]/10 border border-[#FF007F]/20 px-3 py-2 rounded-xl shrink-0 text-left">
           {errorMsg}
         </p>
       )}
 
       {/* 2. Bottom row split: Abilities Panel & Chat Panel */}
-      <div className="flex gap-2 shrink-0 h-44">
+      <div className="flex gap-4 shrink-0 h-48">
         {/* Left column: Abilities console (5 slots) */}
-        <div className="glass-panel glow-purple rounded-xl p-3 flex-1 flex flex-col justify-between">
-          <span className="font-display text-[10px] uppercase tracking-widest text-muted-foreground text-left font-black block border-b border-border/50 pb-1 mb-2">
-            Abilities
+        <div className="glass-panel glow-purple rounded-2xl p-4 flex-1 flex flex-col justify-between">
+          <span className="flex items-center gap-2 text-left border-b border-white/5 pb-1.5 mb-2.5">
+            <span className="w-1 h-3.5 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
+            <span className="font-display text-[11px] uppercase tracking-[0.2em] text-foreground font-black">
+              Abilities
+            </span>
           </span>
-          <div className="flex gap-1.5 justify-between items-center flex-1 py-1">
+          <div className="flex gap-2.5 justify-between items-center flex-1 py-1">
             {abilitySlots.map((slot, index) => {
               const ownedCount = myPowers[slot.key] ?? 0
               const isPlaying = room?.status === 'playing'
               const canUse = isPlaying && ownedCount > 0 && !isPending
+              const meta = abilityColors[slot.key]
 
               return (
                 <button
@@ -393,25 +443,42 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                   onClick={() =>
                     slot.key === 'freeze' ? setSelectingFreeze(true) : handleUseAbility(slot.key)
                   }
-                  className={`flex-1 flex flex-col items-center justify-between py-2 border rounded-lg h-full transition-all ${
+                  className={`flex-1 flex flex-col items-center justify-center py-3 border rounded-xl h-full transition-all relative ${
                     canUse
-                      ? 'bg-[#A855F7]/8 border-[#A855F7]/40 hover:bg-[#A855F7]/15 hover:scale-105 shadow-[0_0_8px_rgba(168,85,247,0.1)]'
-                      : 'bg-white/1 border-border/20 opacity-30 cursor-not-allowed'
+                      ? 'bg-black/40 border-[1px] hover:scale-105 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
+                      : 'bg-black/20 border-dashed border-white/5 opacity-25 cursor-not-allowed'
                   }`}
+                  style={canUse ? { borderColor: meta.border, boxShadow: `0 0 12px ${meta.border.replace('0.4', '0.15')}` } : {}}
                   title={`${slot.name} (Owned: ${ownedCount})`}
                 >
-                  <span className="font-display font-black text-[9px] text-muted-foreground leading-none">
+                  {/* Shortcut keycap */}
+                  <span className="absolute top-1 left-1.5 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[7px] font-mono font-bold leading-none text-muted-foreground">
                     {index + 1}
                   </span>
-                  <span className="text-xl leading-none my-1 animate-pulse-blue">{slot.emoji}</span>
-                  <div className="flex flex-col items-center leading-none">
-                    <span className="text-[8px] font-bold truncate max-w-full font-display">
-                      {slot.name}
-                    </span>
-                    <span className="text-[9px] text-[#A855F7] font-bold font-mono mt-0.5">
+
+                  {/* Icon with animation if owned */}
+                  {(() => {
+                    const SlotIcon = slot.icon
+                    return canUse ? (
+                      <SlotIcon
+                        className={`w-5 h-5 my-1.5 ${canUse ? 'animate-pulse-blue' : ''}`}
+                        style={{ color: meta.text.replace('text-[', '').replace(']', '') }}
+                      />
+                    ) : (
+                      <Lock className="w-4 h-4 text-muted-foreground/30 my-1.5" />
+                    )
+                  })()}
+
+                  {/* Name and Count */}
+                  <span className="text-[8px] font-bold truncate max-w-full font-display mt-0.5 text-muted-foreground">
+                    {slot.name}
+                  </span>
+
+                  {ownedCount > 0 && (
+                    <span className="absolute bottom-1.5 right-1.5 px-1 py-0.5 rounded bg-[#A855F7]/25 text-[7px] font-bold text-white font-mono leading-none border border-[#A855F7]/30">
                       x{ownedCount}
                     </span>
-                  </div>
+                  )}
                 </button>
               )
             })}
@@ -419,9 +486,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         </div>
 
         {/* Right column: Chat Console */}
-        <div className="glass-panel glow-purple rounded-xl flex flex-col" style={{ width: 280 }}>
+        <div className="glass-panel glow-purple rounded-2xl flex flex-col" style={{ width: 280 }}>
           {/* Messages display */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 min-h-0 select-text text-left">
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0 select-text text-left">
             {events.slice(-30).map(ev => (
               <div key={ev.id} className="text-[11px] leading-relaxed">
                 {ev.type === 'chat' && ev.nickname ? (
@@ -439,24 +506,24 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
           </div>
 
           {/* Form input */}
-          <form onSubmit={handleChat} className="flex gap-2 p-2 border-t border-border/50 shrink-0 relative">
+          <form onSubmit={handleChat} className="flex gap-2 p-2 border-t border-white/5 shrink-0 relative">
             <button
               ref={pickerButtonRef}
               type="button"
               onClick={() => setShowPicker(!showPicker)}
-              className="text-muted-foreground hover:text-foreground text-sm transition-colors px-1 cursor-pointer shrink-0"
+              className="text-muted-foreground hover:text-foreground text-sm transition-colors px-1.5 cursor-pointer shrink-0 flex items-center justify-center"
               title="Add Reaction"
             >
-              😀
+              <Smile className="w-4 h-4" />
             </button>
 
             {showPicker && (
               <div
                 ref={pickerRef}
-                className="absolute bottom-full right-2 mb-2 p-3 rounded-xl bg-[#0A0A10]/95 border border-[#A855F7]/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] z-30 w-56 flex flex-col gap-2 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150"
+                className="absolute bottom-full right-2 mb-2 p-3.5 rounded-2xl bg-[#0A0A10]/95 border border-[#A855F7]/30 shadow-[0_0_20px_rgba(168,85,247,0.35)] z-30 w-56 flex flex-col gap-2.5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150"
               >
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-display font-bold block mb-1 text-left">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-display font-bold block mb-1.5 text-left">
                     Standard Reactions
                   </span>
                   <div className="grid grid-cols-6 gap-1">
@@ -465,15 +532,15 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                         key={emoji}
                         type="button"
                         onClick={() => sendReaction(emoji)}
-                        className="text-lg hover:scale-125 transition-transform p-1 hover:bg-white/5 rounded cursor-pointer"
+                        className="text-lg hover:scale-125 transition-transform p-1 hover:bg-white/5 rounded-lg cursor-pointer text-white"
                       >
                         {emoji}
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="border-t border-border/30 pt-2">
-                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-display font-bold block mb-1 text-left">
+                <div className="border-t border-white/5 pt-2.5">
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-display font-bold block mb-1.5 text-left">
                     Game Reactions
                   </span>
                   <div className="grid grid-cols-7 gap-1">
@@ -482,7 +549,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                         key={emoji}
                         type="button"
                         onClick={() => sendReaction(emoji)}
-                        className="text-lg hover:scale-125 transition-transform p-1 hover:bg-white/5 rounded cursor-pointer"
+                        className="text-lg hover:scale-125 transition-transform p-1 hover:bg-white/5 rounded-lg cursor-pointer text-white"
                       >
                         {emoji}
                       </button>
@@ -497,12 +564,12 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               onChange={e => setChatInput(e.target.value)}
               placeholder="Type a message..."
               maxLength={80}
-              className="flex-1 bg-transparent border-none! shadow-none! rounded-none! py-1! px-0! text-xs focus:ring-0 placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent! border-none! shadow-none! rounded-none! py-1! px-0! text-xs focus:ring-0 placeholder:text-muted-foreground"
             />
             <button
               type="submit"
               disabled={!chatInput.trim() || isPending}
-              className="text-[#A855F7] hover:text-[#c084fc] font-display text-xs uppercase tracking-widest font-black disabled:opacity-40 transition-colors shrink-0"
+              className="text-[#A855F7] hover:text-[#c084fc] font-display text-xs uppercase tracking-widest font-black disabled:opacity-40 transition-colors shrink-0 px-2 text-white"
             >
               Send
             </button>

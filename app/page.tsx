@@ -184,9 +184,9 @@ export default function LandingPage() {
     <main
       className="min-h-screen cyber-grid flex flex-col justify-center items-center md:items-start p-6 md:p-12 md:pl-28 relative overflow-hidden font-sans select-none"
       style={{
-        backgroundImage: "linear-gradient(rgba(6, 6, 10, 0.15), rgba(6, 6, 10, 0.15)), url('/back2.jpeg')",
+        backgroundImage: "linear-gradient(rgba(6, 6, 10, 0.15), rgba(6, 6, 10, 0.15)), url('/back2.jpg')",
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'right center',
         backgroundRepeat: 'no-repeat'
       }}
     >
@@ -196,27 +196,30 @@ export default function LandingPage() {
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full pointer-events-none bg-[#A855F7]/2" />
 
       {/* Logo Section */}
-      <div className="flex flex-col items-center md:items-start gap-2.5 mb-4 z-10">
-        <div className="text-5xl animate-bomb-bounce">🐾</div>
+      <div className="flex flex-col items-center md:items-start gap-3 mb-6 z-10">
         <div className="text-center md:text-left">
-          <h1 className="font-display text-5xl font-black tracking-widest text-[#F8FAFC]">
-            PAW<span className="text-[#FF007F] text-brand-glow-pink">nic</span>
+          <h1 className="font-display text-6xl md:text-7xl font-black tracking-tight text-[#F8FAFC] leading-[0.9] drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
+            PAW<span className="text-[#FF007F] text-brand-glow-pink animate-glow-pulse inline-block">nic</span>
           </h1>
-          <p className="text-muted-foreground text-[10px] tracking-[0.3em] mt-1.5 uppercase font-display font-semibold">
-            Hold. Pass. Survive.
-          </p>
+          <div className="flex items-center justify-center md:justify-start gap-2.5 mt-3">
+            <span className="h-[2px] w-8 bg-gradient-to-r from-transparent to-[#FF007F]" />
+            <p className="text-[#F8FAFC]/70 text-[11px] tracking-[0.35em] uppercase font-display font-bold">
+              Hold. Pass. Survive.
+            </p>
+            <span className="h-[2px] w-8 bg-gradient-to-l from-transparent to-[#FF007F] md:hidden" />
+          </div>
         </div>
       </div>
 
       {/* Roster & Form card */}
-      <div className="glass-panel glow-pink rounded-2xl w-full max-w-md overflow-hidden z-10">
+      <div className="glass-panel glow-pink rounded-2xl w-full max-w-md overflow-hidden z-10 shadow-[0_12px_48px_rgba(255,0,127,0.18)]">
         {/* Navigation Tabs */}
         <div className="flex border-b border-border/80">
           {(['create', 'join'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-4 text-xs font-display font-bold tracking-widest uppercase transition-all ${tab === t
+              className={`flex-1 py-4 text-xs font-display font-black tracking-[0.2em] uppercase transition-all ${tab === t
                   ? 'text-[#FF007F] border-b-2 border-[#FF007F] bg-white/2'
                   : 'text-muted-foreground hover:text-foreground'
                 }`}
@@ -339,22 +342,30 @@ export default function LandingPage() {
           <button
             onClick={tab === 'create' ? handleCreate : handleJoin}
             disabled={isPending}
-            className="w-full py-3 rounded-xl font-display font-black text-xs tracking-widest uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white"
+            className="group w-full py-3.5 rounded-xl font-display font-black text-sm tracking-[0.2em] uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center gap-2"
             style={{
               background: '#FF007F',
-              boxShadow: '0 0 20px rgba(255, 0, 127, 0.3)',
+              boxShadow: '0 0 24px rgba(255, 0, 127, 0.4)',
               border: '1px solid #FF007F',
             }}
           >
-            {isPending
-              ? (tab === 'create' ? 'Creating...' : 'Joining...')
-              : (tab === 'create' ? 'Create Room' : 'Join Room')}
+            {isPending ? (
+              <>
+                <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                {tab === 'create' ? 'Creating...' : 'Joining...'}
+              </>
+            ) : (
+              <>
+                {tab === 'create' ? 'Create Room' : 'Join Room'}
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      <p className="mt-4 text-[10px] text-muted-foreground text-center md:text-left max-w-xs leading-relaxed uppercase tracking-wider font-display font-bold">
-        2–8 players. Pass the neon cat. Survive the explosion. Last cat standing wins.
+      <p className="mt-5 text-[10px] text-muted-foreground text-center md:text-left max-w-xs leading-relaxed uppercase tracking-wider font-display font-bold z-10">
+        Pass the neon cat. Survive the explosion. Last cat standing wins.
       </p>
     </main>
   )

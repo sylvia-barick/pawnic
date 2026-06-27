@@ -7,7 +7,7 @@
 @theme inline {
   --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fredoka), var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
 
   /* Cyberpunk / Space Neon Color Palette */
@@ -39,10 +39,10 @@
   --color-panel-border: var(--panel-border);
   --color-glass: var(--glass);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 }
 
 :root {
@@ -53,10 +53,10 @@
   --foreground: #F8FAFC;
 
   /* Translucent cards with high visibility white texts */
-  --card: rgba(13, 13, 22, 0.85);
+  --card: #000000;
   --card-foreground: #F8FAFC;
 
-  --popover: #0A0A10;
+  --popover: #000000;
   --popover-foreground: #F8FAFC;
 
   /* Pop Purple */
@@ -83,16 +83,16 @@
   --input: rgba(255, 255, 255, 0.03);
   --ring: #FF5F1F;
 
-  --radius: 12px;
+  --radius: 20px;
 
   /* High fidelity neon color tokens */
   --neon-blue: #3B82F6;
   --neon-red: #FF007F;
   --neon-purple: #A855F7;
   --neon-cyan: #06B6D4;
-  --panel: rgba(14, 14, 24, 0.9);
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --glass: rgba(13, 13, 22, 0.85);
+  --panel: #000000;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --glass: #000000;
 }
 
 @layer base {
@@ -110,8 +110,6 @@
   }
 }
 
-
-
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -121,64 +119,81 @@
   background: #06060A;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* Neon Panel Custom Borders & Bold Solid Shadows */
+/* Panel system (Solid black backgrounds, glowing borders) */
 .glass-panel {
-  background: linear-gradient(135deg, #0d0d16 0%, #11111c 100%) !important;
-  backdrop-filter: none !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 4px 4px 0px 0px #000000 !important;
-  border-radius: 12px !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+  border-radius: 20px !important;
   color: #F8FAFC !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Bold colored borders with solid offset shadows and custom box-specific gradients */
+/* Saturated smooth ambient glows for solid black panels */
 .glow-orange {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #FF5F1F !important;
-  background: linear-gradient(135deg, rgba(13, 13, 22, 0.75) 0%, rgba(30, 17, 11, 0.75) 100%) !important;
-  backdrop-filter: blur(8px) !important;
+  border: 3px solid rgba(255, 95, 31, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(255, 95, 31, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 95, 31, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-yellow {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #FFE234 !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #1c1a0b 100%) !important;
+  border: 3px solid rgba(255, 226, 52, 0.65) !important;
+  box-shadow: 0 8px 32px 0 rgba(255, 226, 52, 0.1), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 226, 52, 0.5) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-purple {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #A855F7 !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #150b24 100%) !important;
+  border: 3px solid rgba(168, 85, 247, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(168, 85, 247, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(168, 85, 247, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-blue {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #3B82F6 !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #0a1124 100%) !important;
+  border: 3px solid rgba(59, 130, 246, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(59, 130, 246, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-red {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #FF007F !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #210a14 100%) !important;
+  border: 3px solid rgba(255, 0, 127, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(255, 0, 127, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 0, 127, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-pink {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #FF007F !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #210a14 100%) !important;
+  border: 3px solid rgba(255, 0, 127, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(255, 0, 127, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 0, 127, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-cyan {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #06B6D4 !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #06161a 100%) !important;
+  border: 3px solid rgba(6, 182, 212, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(6, 182, 212, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 .glow-green {
-  border: 4px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #22C55E !important;
-  background: linear-gradient(135deg, #0d0d16 0%, #0b1a10 100%) !important;
+  border: 3px solid rgba(34, 197, 94, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(34, 197, 94, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(34, 197, 94, 0.55) !important;
+  background: #000000 !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
 }
 
 .cyber-grid {
@@ -193,340 +208,337 @@
 .text-brand {
   color: #FFFFFF !important;
   font-weight: 800 !important;
+  font-family: 'Fredoka', sans-serif !important;
 }
 .text-brand-glow {
   color: #FF5F1F !important;
   font-weight: 900 !important;
-  text-shadow: none !important;
+  text-shadow: 0 0 8px rgba(255, 95, 31, 0.4) !important;
 }
 .text-brand-glow-pink {
   color: #FF007F !important;
   font-weight: 900 !important;
-  text-shadow: none !important;
+  text-shadow: 0 0 8px rgba(255, 0, 127, 0.4) !important;
 }
 .text-brand-glow-green {
   color: #22C55E !important;
   font-weight: 900 !important;
-  text-shadow: none !important;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.4) !important;
 }
 
-/* Green and Blue Pop Button Overrides */
-button[style*="background: #22C55E"],
-button[style*="background:#22C55E"],
-button[style*="background: rgb(34, 197, 94)"],
-button[style*="background:rgb(34, 197, 94)"],
-button[class*="bg-[#22C55E]"] {
-  background: #22C55E !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 3px 3px 0px 0px #000000 !important;
-  color: #000000 !important;
-  font-weight: 900 !important;
-  border-radius: 8px !important;
-  text-shadow: none !important;
-}
-button[style*="background: #22C55E"]:hover,
-button[style*="background:#22C55E"]:hover,
-button[style*="background: rgb(34, 197, 94)"]:hover,
-button[style*="background:rgb(34, 197, 94)"]:hover {
-  background: #1eb253 !important;
-  box-shadow: 4px 4px 0px 0px #000000 !important;
-}
-
-button[style*="background: #3B82F6"],
-button[style*="background:#3B82F6"],
-button[style*="background: rgb(59, 130, 246)"],
-button[style*="background:rgb(59, 130, 246)"],
-button[class*="bg-[#3B82F6]"] {
-  background: #3B82F6 !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 3px 3px 0px 0px #000000 !important;
-  color: #FFFFFF !important;
-  font-weight: 900 !important;
-  border-radius: 8px !important;
-  text-shadow: none !important;
-}
-button[style*="background: #3B82F6"]:hover,
-button[style*="background:#3B82F6"]:hover,
-button[style*="background: rgb(59, 130, 246)"]:hover,
-button[style*="background:rgb(59, 130, 246)"]:hover {
-  background: #2563eb !important;
-  box-shadow: 4px 4px 0px 0px #000000 !important;
-}
-
-/* General interactive overrides */
+/* Interactive Input system styling */
 input {
-  background-color: #06060A !important;
-  border: 3px solid #FFFFFF !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #FFFFFF !important;
-  border-radius: 8px !important;
-  padding: 10px 16px !important;
-  box-shadow: 3px 3px 0px 0px #000000 !important;
-  font-weight: 700 !important;
-  transition: all 0.1s ease;
+  border-radius: 12px !important;
+  padding: 12px 18px !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Space Grotesk', sans-serif !important;
 }
 input:focus {
   outline: none !important;
-  border-color: #FF5F1F !important;
-  box-shadow: 3px 3px 0px 0px #FF5F1F !important;
+  border-color: rgba(255, 95, 31, 0.8) !important;
+  box-shadow: 0 0 0 3px rgba(255, 95, 31, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* Buttons in the dark pop theme */
+/* Unified Buttons styling - weight and tactile click */
 button {
-  font-family: 'Space Grotesk', sans-serif !important;
-  transition: all 0.1s ease !important;
+  font-family: 'Fredoka', 'Space Grotesk', sans-serif !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   cursor: pointer;
+  border-radius: 12px !important;
 }
 button:active:not([disabled]) {
-  transform: translate(2px, 2px) !important;
-  box-shadow: 1px 1px 0px 0px #000000 !important;
+  transform: scale(0.96) !important;
 }
 
-/* Orange Pop Buttons (Create Room, Start Game, Buy in mockup) */
+/* Create Room & Start Game Buttons (Orange neon accent) */
 button[style*="background: #FF5F1F"],
 button[style*="background:#FF5F1F"],
 button[class*="bg-[oklch(0.70"],
 button[class*="bg-[oklch(0.70_0.22_45)"] {
   background: #FF5F1F !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 3px 3px 0px 0px #000000 !important;
-  color: #000000 !important;
-  font-weight: 900 !important;
-  border-radius: 8px !important;
+  border: 1px solid rgba(255, 95, 31, 0.3) !important;
+  box-shadow: 0 4px 14px 0 rgba(255, 95, 31, 0.4) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
   text-shadow: none !important;
 }
 button[style*="background: #FF5F1F"]:hover,
 button[style*="background:#FF5F1F"]:hover {
   background: #ff733b !important;
-  box-shadow: 4px 4px 0px 0px #000000 !important;
+  box-shadow: 0 6px 20px 0 rgba(255, 95, 31, 0.6) !important;
 }
 
-/* Secondary header styling */
+/* Join & Buy Buttons (Pink neon accent) */
+button[style*="background: #FF007F"],
+button[style*="background:#FF007F"],
+button[class*="bg-[#FF007F]"] {
+  background: #FF007F !important;
+  border: 1px solid rgba(255, 0, 127, 0.3) !important;
+  box-shadow: 0 4px 14px 0 rgba(255, 0, 127, 0.4) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  text-shadow: none !important;
+}
+button[style*="background: #FF007F"]:hover,
+button[style*="background:#FF007F"]:hover,
+button[class*="bg-[#FF007F]"]:hover {
+  background: #ff2a93 !important;
+  box-shadow: 0 6px 20px 0 rgba(255, 0, 127, 0.6) !important;
+}
+
+/* Success Reconnect Wallet Button (Green neon accent) */
+button[style*="background: #22C55E"],
+button[style*="background:#22C55E"],
+button[class*="bg-[#22C55E]"] {
+  background: #22C55E !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+  box-shadow: 0 4px 14px 0 rgba(34, 197, 94, 0.35) !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  text-shadow: none !important;
+}
+button[style*="background: #22C55E"]:hover,
+button[style*="background:#22C55E"]:hover {
+  background: #2edc6c !important;
+  box-shadow: 0 6px 20px 0 rgba(34, 197, 94, 0.5) !important;
+}
+
+/* Secondary Action Button (Blue neon accent) */
+button[style*="background: #3B82F6"],
+button[style*="background:#3B82F6"],
+button[class*="bg-[#3B82F6]"] {
+  background: #3B82F6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.35) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  text-shadow: none !important;
+}
+button[style*="background: #3B82F6"]:hover,
+button[style*="background:#3B82F6"]:hover {
+  background: #4f8ef7 !important;
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Header Navbar */
 header.glass-panel {
-  background: #FFE234 !important; /* Bold yellow nav header */
-  border-bottom: 3px solid #000000 !important;
-  box-shadow: 0px 4px 0px 0px #000000 !important;
+  background: #000000 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
   border-radius: 0px !important;
-  height: 54px !important;
+  height: 60px !important;
 }
 
 /* Segmented selector tabs */
 .glass-panel > div.flex.border-b {
-  border-bottom: 3px solid #000000 !important;
-  background: rgba(255, 255, 255, 0.02) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.01) !important;
 }
 .glass-panel > div.flex.border-b > button {
   border: none !important;
   box-shadow: none !important;
   border-radius: 0px !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
   color: #94A3B8 !important;
   transition: all 0.2s;
-  border-bottom: 3px solid transparent !important;
+  border-bottom: 2px solid transparent !important;
 }
 .glass-panel > div.flex.border-b > button[class*="text-brand-glow"],
 .glass-panel > div.flex.border-b > button:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
   color: #FF5F1F !important;
-  border-bottom: 3px solid #FF5F1F !important;
+  border-bottom: 2px solid #FF5F1F !important;
 }
 
-/* Sidebar List Roster items */
+/* Roster / Player list items */
 .glass-panel div[class*="bg-[oklch(0.12_0.03_270/60%)]"],
 .glass-panel div[class*="bg-[oklch(0.12_0.03_270"] {
-  background-color: #0E0E18 !important;
-  border: 2px solid #000000 !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #FFFFFF !important;
-  border-radius: 8px !important;
-  box-shadow: 2px 2px 0px 0px #000000 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
-/* Active bomb holder item in list */
 .glass-panel div[class*="bg-[oklch(0.62_0.26_22/20%)]"] {
-  background-color: rgba(255, 0, 127, 0.15) !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 2px 2px 0px 0px #FF007F !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 0, 127, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(255, 0, 127, 0.15) !important;
 }
-/* My player item in list */
 .glass-panel div[class*="bg-[oklch(0.70_0.22_45/10%)]"] {
-  background-color: rgba(255, 95, 31, 0.15) !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 2px 2px 0px 0px #FF5F1F !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 95, 31, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(255, 95, 31, 0.15) !important;
 }
 
-/* Power shop Buy button styles in shop */
+/* Power Shop buy button styling */
 button[style*="color: oklch(0.70 0.22 45)"],
 button[style*="color:oklch(0.70 0.22 45)"] {
   background-color: #FF007F !important;
   color: #FFFFFF !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 2px 2px 0px 0px #000000 !important;
-  border-radius: 6px !important;
-  font-weight: 800 !important;
+  border: 1px solid rgba(255, 0, 127, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(255, 0, 127, 0.3) !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
 }
 button[style*="color: oklch(0.70 0.22 45)"]:hover,
 button[style*="color:oklch(0.70 0.22 45)"]:hover {
   background-color: #ff3399 !important;
+  box-shadow: 0 4px 12px rgba(255, 0, 127, 0.5) !important;
 }
 button[style*="color: oklch(0.45 0.06 240)"],
 button[style*="color:oklch(0.45 0.06 240)"] {
   background-color: rgba(255, 255, 255, 0.03) !important;
   color: rgba(255, 255, 255, 0.25) !important;
-  border: 2px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
   box-shadow: none !important;
 }
-/* Use buttons in shop */
+
+/* Freeze Use Target select buttons */
 button[style*="color: oklch(0.80 0.18 195)"],
 button[style*="color:oklch(0.80 0.18 195)"] {
   background-color: #06B6D4 !important;
   color: #000000 !important;
-  border: 2px solid #000000 !important;
-  box-shadow: 2px 2px 0px 0px #000000 !important;
-  border-radius: 6px !important;
-  font-weight: 800 !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3) !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
 }
 
-/* Arena card styling */
+/* Arena card styling overlay grid */
 .cyber-grid.glass-panel {
   background: 
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(135deg, #0d0d16 0%, #0a1124 100%) !important;
+    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+    #000000 !important;
   background-size: 30px 30px, 30px 30px, 100% 100% !important;
-  background-attachment: fixed !important;
-  border: 3px solid #000000 !important;
-  box-shadow: 5px 5px 0px 0px #3B82F6 !important;
+  border: 3px solid rgba(59, 130, 246, 0.7) !important;
+  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(59, 130, 246, 0.55) !important;
 }
 
 /* Circular player avatars inside arena */
 .absolute.flex.flex-col.items-center.gap-1 button {
-  background-color: rgba(14, 14, 24, 0.9) !important;
-  border: 2px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  background-color: rgba(14, 14, 24, 0.95) !important;
+  border: 2px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
   color: #FFFFFF !important;
-  border-radius: 9999px !important;
-  width: 52px !important;
-  height: 52px !important;
+  border-radius: 20px !important; /* styled as cute squircle instead of boring circles */
+  width: 56px !important;
+  height: 56px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 .absolute.flex.flex-col.items-center.gap-1 button[class*="border-[oklch(0.62"] {
   border-color: #FF007F !important;
-  box-shadow: 0 0 15px rgba(255, 0, 127, 0.6) !important;
+  box-shadow: 0 0 20px rgba(255, 0, 127, 0.8) !important;
   animation: pulse-red 1.2s ease-in-out infinite !important;
 }
 .absolute.flex.flex-col.items-center.gap-1 button[class*="cursor-pointer"] {
   border-color: #06B6D4 !important;
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.4) !important;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.5) !important;
 }
 .absolute.flex.flex-col.items-center.gap-1 button[class*="cursor-pointer"]:hover {
-  transform: scale(1.08) !important;
+  transform: scale(1.1) !important;
 }
 
-/* Explodes in timer badge in top-left of Arena */
 .absolute.top-3.left-1\/2.-translate-x-1\/2.z-10 {
-  display: none !important; /* we hide the old top-center explosions timer */
+  display: none !important;
 }
 
-/* Custom layout class for Mockup Arena Timer (top-left of arena card) */
-.arena-timer-badge {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Status badges at the bottom of the arena */
-.absolute.bottom-3.left-1\/2.-translate-x-1\/2 div[class*="border"] {
-  background-color: rgba(10, 10, 18, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  color: #FFFFFF !important;
-}
-.absolute.bottom-3.left-1\/2.-translate-x-1\/2 div[class*="animate-pulse-red"] {
-  border-color: rgba(255, 0, 127, 0.4) !important;
-  box-shadow: 0 0 12px rgba(255, 0, 127, 0.2) !important;
-  color: #FF007F !important;
-}
-
-/* Chat card container styling */
+/* Chat container card styling override */
 .glass-panel[style*="height: 180"],
 .glass-panel[style*="height:180"] {
-  background-color: rgba(14, 14, 24, 0.85) !important;
+  background-color: #000000 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
 }
 .glass-panel[style*="height: 180"] form,
 .glass-panel[style*="height:180"] form {
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background-color: rgba(255, 255, 255, 0.02) !important;
+  background-color: rgba(255, 255, 255, 0.01) !important;
 }
 .glass-panel[style*="height: 180"] span,
 .glass-panel[style*="height:180"] span {
   color: #E2E8F0 !important;
 }
 
-/* Leave room button */
+/* Leave room button styles */
 button[class*="hover:text-red-400"] {
   background-color: rgba(255, 255, 255, 0.02) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #94A3B8 !important;
   box-shadow: none !important;
-  border-radius: 8px !important;
+  border-radius: 12px !important;
 }
 button[class*="hover:text-red-400"]:hover {
-  background-color: rgba(239, 68, 68, 0.1) !important;
-  border-color: rgba(239, 68, 68, 0.4) !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
   color: #EF4444 !important;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.1) !important;
 }
 
 /* Final winner overlay */
 .fixed.z-50 .glass-panel {
-  background-color: rgba(10, 10, 18, 0.95) !important;
-  border: 1px solid rgba(168, 85, 247, 0.3) !important;
-  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.2) !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(168, 85, 247, 0.4) !important;
+  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.25) !important;
   color: #FFFFFF !important;
+  border-radius: 24px !important;
 }
 .fixed.z-50 .glass-panel h2 {
   color: #FFFFFF !important;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.3) !important;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Text visibility overrides */
+/* General Typography custom modifiers */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Fredoka', sans-serif !important;
+}
 .text-muted-foreground {
   color: #94A3B8 !important;
 }
-.text-red-400 {
-  color: #EF4444 !important;
-}
 
-/* Glowing progress segments for Danger Level meter */
+/* Danger meter segments */
 .danger-segment {
-  width: 14px;
-  height: 6px;
-  border-radius: 1px;
+  width: 16px;
+  height: 7px;
+  border-radius: 2px;
   transition: all 0.3s ease;
   background-color: rgba(255, 255, 255, 0.08);
 }
 .danger-segment.filled {
   background-color: #FF007F;
-  box-shadow: 0 0 8px #FF007F;
+  box-shadow: 0 0 10px #FF007F;
 }
 
-/* Animations */
+/* Animations declarations */
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 127, 0.4); }
-  50% { box-shadow: 0 0 20px rgba(255, 0, 127, 0.8); }
+  0%, 100% { box-shadow: 0 0 12px rgba(255, 0, 127, 0.4); }
+  50% { box-shadow: 0 0 24px rgba(255, 0, 127, 0.85); }
 }
 @keyframes pulse-blue {
-  0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
-  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+  0%, 100% { box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 24px rgba(59, 130, 246, 0.85); }
 }
 @keyframes bomb-bounce {
   0%, 100% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-4px) scale(1.03); }
+  50% { transform: translateY(-6px) scale(1.04); }
+}
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5)); }
+  50% { filter: drop-shadow(0 0 20px rgba(255, 0, 127, 0.95)); }
 }
 
 .animate-pulse-red { animation: pulse-red 1.2s ease-in-out infinite !important; }
 .animate-pulse-blue { animation: pulse-blue 2s ease-in-out infinite !important; }
-.animate-bomb-bounce { animation: bomb-bounce 1s ease-in-out infinite !important; }
+.animate-bomb-bounce { animation: bomb-bounce 1.2s ease-in-out infinite !important; }
+.animate-glow-pulse { animation: glow-pulse 1.8s ease-in-out infinite !important; }
 
 /* Real-time Reaction Floating Animation */
 @keyframes float-up-fade {
@@ -535,15 +547,59 @@ button[class*="hover:text-red-400"]:hover {
     opacity: 0;
   }
   15% {
-    transform: translateY(-20px) scale(1.25);
+    transform: translateY(-25px) scale(1.3);
     opacity: 1;
   }
   100% {
-    transform: translateY(-90px) scale(0.95);
+    transform: translateY(-110px) scale(0.9);
     opacity: 0;
   }
 }
-
 .animate-float-up-fade {
   animation: float-up-fade 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Holographic Arena floor details */
+.arena-hologram-floor {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 70%);
+  border: 1px dashed rgba(6, 182, 212, 0.25);
+  animation: spin 20s linear infinite;
+}
+.arena-hologram-ring-outer {
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  border: 2px solid rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.1) inset;
+}
+.arena-hologram-ring-inner {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 0, 127, 0.25);
+  box-shadow: 0 0 20px rgba(255, 0, 127, 0.15);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Laser connection wire mapping */
+.arena-laser-line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.6) 50%, transparent);
+  transform-origin: left center;
+  pointer-events: none;
+  z-index: 5;
+}
+.arena-laser-line.active {
+  background: linear-gradient(90deg, transparent, rgba(255, 0, 127, 0.7) 50%, transparent);
 }

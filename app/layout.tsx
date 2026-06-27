@@ -1,10 +1,15 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist_Mono, Space_Grotesk } from 'next/font/google'
+import { Geist_Mono, Space_Grotesk, Fredoka } from 'next/font/google'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+})
+const fredoka = Fredoka({
+  variable: '--font-fredoka',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 })
@@ -32,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${geistMono.variable} bg-background`}
+      className={`${spaceGrotesk.variable} ${geistMono.variable} ${fredoka.variable} bg-background`}
     >
       <body className="antialiased">
         {children}
