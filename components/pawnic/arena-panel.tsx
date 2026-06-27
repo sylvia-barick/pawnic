@@ -198,14 +198,14 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         {/* Dynamic game display layouts */}
         {room?.status === 'waiting' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
-            <div className="w-40 h-40 rounded-full overflow-hidden border border-[#FF007F]/45 shadow-[0_0_32px_rgba(255,0,127,0.45)] flex items-center justify-center bg-black/60">
+            <div className="w-72 h-72 rounded-2xl overflow-hidden border border-[#FF007F]/45 shadow-[0_0_32px_rgba(255,0,127,0.45)] flex items-center justify-center bg-black/60">
               <video
                 src="/cawt.mp4"
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover scale-110"
+                className="w-full h-full object-contain"
               />
             </div>
             <p className="font-display text-muted-foreground text-sm uppercase tracking-[0.2em] font-black animate-pulse">

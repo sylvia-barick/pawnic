@@ -17,14 +17,14 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     return (
       <div className="min-h-screen bg-transparent cyber-grid flex items-center justify-center">
         <div className="flex flex-col items-center gap-5">
-          <div className="w-44 h-44 rounded-full overflow-hidden border border-[#FF007F]/45 shadow-[0_0_32px_rgba(255,0,127,0.45)] flex items-center justify-center bg-black/60">
+          <div className="w-80 h-80 rounded-2xl overflow-hidden border border-[#FF007F]/45 shadow-[0_0_32px_rgba(255,0,127,0.45)] flex items-center justify-center bg-black/60">
             <video
               src="/cawt.mp4"
               autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full object-cover scale-110"
+              className="w-full h-full object-contain"
             />
           </div>
           <p className="font-display text-muted-foreground tracking-[0.25em] text-xs uppercase font-black animate-pulse">
