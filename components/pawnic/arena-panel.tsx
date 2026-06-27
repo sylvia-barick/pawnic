@@ -23,6 +23,14 @@ const abilityColors: Record<PowerType, { bg: string; border: string; text: strin
   nine_lives: { bg: 'rgba(255, 0, 127, 0.05)', border: 'rgba(255, 0, 127, 0.4)', text: 'text-[#FF007F]' },
 }
 
+const abilityShortnames: Record<PowerType, string> = {
+  reverse: 'MIRR',
+  freeze: 'FRZ',
+  double_points: '2X',
+  smoke_screen: 'SMK',
+  nine_lives: '9LIV',
+}
+
 export function ArenaPanel({ room, players, events, myPlayer, userId, reactions, sendReaction }: Props) {
   const [chatInput, setChatInput] = useState('')
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
@@ -459,16 +467,17 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     {index + 1}
                   </span>
 
-                  {/* Icon with animation if owned */}
-                  {(() => {
-                    const SlotIcon = slot.icon
-                    return (
-                      <SlotIcon
-                        className={`w-5 h-5 my-1.5 ${canUse ? 'animate-pulse-blue' : ''}`}
-                        style={{ color: meta.text.replace('text-[', '').replace(']', '') }}
-                      />
-                    )
-                  })()}
+                  {/* Inner Box with Text */}
+                  <div
+                    className="w-12 h-12 rounded-lg border flex items-center justify-center font-display text-[9px] font-black tracking-wider transition-all select-none my-1 bg-[#0E0E18]/90"
+                    style={{
+                      borderColor: canUse ? meta.border : 'rgba(255, 255, 255, 0.08)',
+                      color: canUse ? meta.text.replace('text-[', '').replace(']', '') : 'rgba(255, 255, 255, 0.35)',
+                      boxShadow: canUse ? `inset 0 0 10px ${meta.border.replace('0.4', '0.2')}, 0 0 8px ${meta.border.replace('0.4', '0.1')}` : 'none'
+                    }}
+                  >
+                    {abilityShortnames[slot.key]}
+                  </div>
 
                   {/* Name and Count */}
                   <span className="text-[8px] font-bold truncate max-w-full font-display mt-0.5 text-muted-foreground">
