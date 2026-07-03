@@ -99,14 +99,15 @@
   * {
     border-color: var(--border);
   }
+
   body {
-    background: url('/back.jpg') no-repeat center center fixed !important;
-    background-size: cover !important;
+    background: #0d0209 !important;
     color: var(--foreground);
     font-family: 'Space Grotesk', sans-serif;
   }
+
   html {
-    background: #020204 !important;
+    background: #0d0209 !important;
   }
 }
 
@@ -115,85 +116,122 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #06060A;
+  background: #0d0209;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.18);
 }
 
-/* Panel system (Solid black backgrounds, glowing borders) */
+/* ============================================================
+   ELEVATION SYSTEM — 5 tiers of perceived depth
+   Layer 0 (bg):       #0d0209  — deepest, receded
+   Layer 1 (Shop/Chat): #1a0816 — sunk into bg, near-invisible
+   Layer 2 (Side):     #1f0a1a  — standard surface
+   Layer 3 (Arena):    #270d21  — lifted, brightest panel
+   Layer 4 (Cards):    #2e0e26  — raised above panels
+   Layer 5 (Buttons):  #3d1133  — interactive top surface
+
+   Shadow strategy:
+   - Panels: ambient blur shadow (no offset) = feels lifted
+   - Cards:  small ambient + 1px border = elevated above panel
+   - Buttons: flat 2-3px neo offset = clickable tactile feel
+   ============================================================ */
+
+/* Base — Tier 2 surface (fallback for any un-classified panel) */
 .glass-panel {
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
-  border-radius: 20px !important;
+  background: #1f0a1a !important;
+  border: 1px solid rgba(255, 80, 160, 0.12) !important;
+  /* Ambient shadow — lifts surface above bg without hard edge */
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.55),
+    0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  border-radius: 12px !important;
   color: #F8FAFC !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-/* Saturated smooth ambient glows for solid black panels */
-.glow-orange {
-  border: 3px solid rgba(255, 95, 31, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(255, 95, 31, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 95, 31, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-}
-.glow-yellow {
-  border: 3px solid rgba(255, 226, 52, 0.65) !important;
-  box-shadow: 0 8px 32px 0 rgba(255, 226, 52, 0.1), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 226, 52, 0.5) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-}
-.glow-purple {
-  border: 3px solid rgba(168, 85, 247, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(168, 85, 247, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(168, 85, 247, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-}
+/* ── Tier 3 (dominant): Arena — highest elevation ── */
+/* Brighter surface + large ambient shadow + vivid accent border */
 .glow-blue {
-  border: 3px solid rgba(59, 130, 246, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(59, 130, 246, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: #270d21 !important;
+  border: 3px solid #FF007F !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 0, 127, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.75),
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    0 1px 0 rgba(255, 80, 160, 0.1) inset !important;
 }
-.glow-red {
-  border: 3px solid rgba(255, 0, 127, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(255, 0, 127, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 0, 127, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+
+/* ── Tier 2 (side): Room Info, Players, Actions ── */
+/* Standard surface, moderate ambient lift */
+.glow-orange {
+  background: #1f0a1a !important;
+  border: 1.5px solid rgba(255, 0, 127, 0.28) !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.35) !important;
 }
-.glow-pink {
-  border: 3px solid rgba(255, 0, 127, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(255, 0, 127, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(255, 0, 127, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-}
+
 .glow-cyan {
-  border: 3px solid rgba(6, 182, 212, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(6, 182, 212, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: #1f0a1a !important;
+  border: 1.5px solid rgba(255, 0, 127, 0.28) !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.35) !important;
 }
+
+/* ── Tier 1 (recessed): Shop, Abilities, Chat ── */
+/* Sunk into background — less shadow, darker surface */
+.glow-purple {
+  background: #1a0816 !important;
+  border: 1px solid rgba(255, 80, 160, 0.1) !important;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* ── Danger nav signals (functional, keep vivid but layered) ── */
+.glow-red {
+  background: #1f0a1a !important;
+  border: 2px solid #FF007F !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 0, 127, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(255, 0, 127, 0.15) !important;
+}
+
+.glow-pink {
+  background: #1f0a1a !important;
+  border: 2px solid #FF007F !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 0, 127, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(255, 0, 127, 0.15) !important;
+}
+
+.glow-yellow {
+  background: #1f0a1a !important;
+  border: 2px solid #FF4DA6 !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 77, 166, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(255, 77, 166, 0.12) !important;
+}
+
 .glow-green {
-  border: 3px solid rgba(34, 197, 94, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(34, 197, 94, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(34, 197, 94, 0.55) !important;
-  background: #000000 !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
+  background: #1f0a1a !important;
+  border: 1.5px solid rgba(255, 0, 127, 0.28) !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.6),
+    0 6px 20px rgba(0, 0, 0, 0.35) !important;
 }
 
 .cyber-grid {
@@ -204,22 +242,26 @@
   background-attachment: fixed;
 }
 
+
 /* Brand Text styles */
 .text-brand {
   color: #FFFFFF !important;
   font-weight: 800 !important;
   font-family: 'Fredoka', sans-serif !important;
 }
+
 .text-brand-glow {
   color: #FF5F1F !important;
   font-weight: 900 !important;
   text-shadow: 0 0 8px rgba(255, 95, 31, 0.4) !important;
 }
+
 .text-brand-glow-pink {
   color: #FF007F !important;
   font-weight: 900 !important;
   text-shadow: 0 0 8px rgba(255, 0, 127, 0.4) !important;
 }
+
 .text-brand-glow-green {
   color: #22C55E !important;
   font-weight: 900 !important;
@@ -228,31 +270,34 @@
 
 /* Interactive Input system styling */
 input {
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background-color: #141229 !important;
+  border: 2px solid #000000 !important;
   color: #FFFFFF !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   padding: 12px 18px !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
   font-weight: 600 !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Space Grotesk', sans-serif !important;
 }
+
 input:focus {
   outline: none !important;
-  border-color: rgba(255, 95, 31, 0.8) !important;
-  box-shadow: 0 0 0 3px rgba(255, 95, 31, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  border-color: #FF5F1F !important;
+  box-shadow: 3px 3px 0px 0px #FF5F1F !important;
 }
 
 /* Unified Buttons styling - weight and tactile click */
 button {
   font-family: 'Fredoka', 'Space Grotesk', sans-serif !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   cursor: pointer;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
 }
+
 button:active:not([disabled]) {
-  transform: scale(0.96) !important;
+  transform: translate(2px, 2px) !important;
+  box-shadow: 0px 0px 0px 0px #000000 !important;
 }
 
 /* Create Room & Start Game Buttons (Orange neon accent) */
@@ -261,17 +306,17 @@ button[style*="background:#FF5F1F"],
 button[class*="bg-[oklch(0.70"],
 button[class*="bg-[oklch(0.70_0.22_45)"] {
   background: #FF5F1F !important;
-  border: 1px solid rgba(255, 95, 31, 0.3) !important;
-  box-shadow: 0 4px 14px 0 rgba(255, 95, 31, 0.4) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   text-shadow: none !important;
 }
+
 button[style*="background: #FF5F1F"]:hover,
 button[style*="background:#FF5F1F"]:hover {
   background: #ff733b !important;
-  box-shadow: 0 6px 20px 0 rgba(255, 95, 31, 0.6) !important;
 }
 
 /* Join & Buy Buttons (Pink neon accent) */
@@ -279,18 +324,18 @@ button[style*="background: #FF007F"],
 button[style*="background:#FF007F"],
 button[class*="bg-[#FF007F]"] {
   background: #FF007F !important;
-  border: 1px solid rgba(255, 0, 127, 0.3) !important;
-  box-shadow: 0 4px 14px 0 rgba(255, 0, 127, 0.4) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   text-shadow: none !important;
 }
+
 button[style*="background: #FF007F"]:hover,
 button[style*="background:#FF007F"]:hover,
 button[class*="bg-[#FF007F]"]:hover {
   background: #ff2a93 !important;
-  box-shadow: 0 6px 20px 0 rgba(255, 0, 127, 0.6) !important;
 }
 
 /* Success Reconnect Wallet Button (Green neon accent) */
@@ -298,17 +343,17 @@ button[style*="background: #22C55E"],
 button[style*="background:#22C55E"],
 button[class*="bg-[#22C55E]"] {
   background: #22C55E !important;
-  border: 1px solid rgba(34, 197, 94, 0.3) !important;
-  box-shadow: 0 4px 14px 0 rgba(34, 197, 94, 0.35) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
   color: #000000 !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   text-shadow: none !important;
 }
+
 button[style*="background: #22C55E"]:hover,
 button[style*="background:#22C55E"]:hover {
   background: #2edc6c !important;
-  box-shadow: 0 6px 20px 0 rgba(34, 197, 94, 0.5) !important;
 }
 
 /* Secondary Action Button (Blue neon accent) */
@@ -316,22 +361,22 @@ button[style*="background: #3B82F6"],
 button[style*="background:#3B82F6"],
 button[class*="bg-[#3B82F6]"] {
   background: #3B82F6 !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
-  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.35) !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   text-shadow: none !important;
 }
+
 button[style*="background: #3B82F6"]:hover,
 button[style*="background:#3B82F6"]:hover {
   background: #4f8ef7 !important;
-  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.5) !important;
 }
 
 /* Header Navbar */
 header.glass-panel {
-  background: #000000 !important;
+  background: #0d0b1e !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
   border-radius: 0px !important;
@@ -339,11 +384,12 @@ header.glass-panel {
 }
 
 /* Segmented selector tabs */
-.glass-panel > div.flex.border-b {
+.glass-panel>div.flex.border-b {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   background: rgba(255, 255, 255, 0.01) !important;
 }
-.glass-panel > div.flex.border-b > button {
+
+.glass-panel>div.flex.border-b>button {
   border: none !important;
   box-shadow: none !important;
   border-radius: 0px !important;
@@ -352,8 +398,9 @@ header.glass-panel {
   transition: all 0.2s;
   border-bottom: 2px solid transparent !important;
 }
-.glass-panel > div.flex.border-b > button[class*="text-brand-glow"],
-.glass-panel > div.flex.border-b > button:hover {
+
+.glass-panel>div.flex.border-b>button[class*="text-brand-glow"],
+.glass-panel>div.flex.border-b>button:hover {
   background: rgba(255, 255, 255, 0.03) !important;
   color: #FF5F1F !important;
   border-bottom: 2px solid #FF5F1F !important;
@@ -362,21 +409,25 @@ header.glass-panel {
 /* Roster / Player list items */
 .glass-panel div[class*="bg-[oklch(0.12_0.03_270/60%)]"],
 .glass-panel div[class*="bg-[oklch(0.12_0.03_270"] {
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-color: #141229 !important;
+  border: 2px solid #000000 !important;
   color: #FFFFFF !important;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  box-shadow: 3px 3px 0px 0px #000000 !important;
 }
+
 .glass-panel div[class*="bg-[oklch(0.62_0.26_22/20%)]"] {
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 0, 127, 0.35) !important;
-  box-shadow: 0 4px 16px rgba(255, 0, 127, 0.15) !important;
+  background-color: #210d21 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #FF007F !important;
+  border-radius: 8px !important;
 }
+
 .glass-panel div[class*="bg-[oklch(0.70_0.22_45/10%)]"] {
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 95, 31, 0.35) !important;
-  box-shadow: 0 4px 16px rgba(255, 95, 31, 0.15) !important;
+  background-color: #221217 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px 0px #FF5F1F !important;
+  border-radius: 8px !important;
 }
 
 /* Power Shop buy button styling */
@@ -389,11 +440,13 @@ button[style*="color:oklch(0.70 0.22 45)"] {
   border-radius: 8px !important;
   font-weight: 700 !important;
 }
+
 button[style*="color: oklch(0.70 0.22 45)"]:hover,
 button[style*="color:oklch(0.70 0.22 45)"]:hover {
   background-color: #ff3399 !important;
   box-shadow: 0 4px 12px rgba(255, 0, 127, 0.5) !important;
 }
+
 button[style*="color: oklch(0.45 0.06 240)"],
 button[style*="color:oklch(0.45 0.06 240)"] {
   background-color: rgba(255, 255, 255, 0.03) !important;
@@ -413,15 +466,15 @@ button[style*="color:oklch(0.80 0.18 195)"] {
   font-weight: 700 !important;
 }
 
-/* Arena card styling overlay grid */
+/* Arena card — Tier 3 (highest elevation) */
+/* Brighter bg handled by .glow-blue above; grid overlay here */
 .cyber-grid.glass-panel {
-  background: 
-    linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-    #000000 !important;
+  background:
+    linear-gradient(rgba(255, 0, 127, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 127, 0.045) 1px, transparent 1px),
+    #270d21 !important;
   background-size: 30px 30px, 30px 30px, 100% 100% !important;
-  border: 3px solid rgba(59, 130, 246, 0.7) !important;
-  box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.12), inset 0 0 0 4px #000000, inset 0 0 0 7px rgba(59, 130, 246, 0.55) !important;
+  /* border and shadow come from .glow-blue */
 }
 
 /* Circular player avatars inside arena */
@@ -430,20 +483,24 @@ button[style*="color:oklch(0.80 0.18 195)"] {
   border: 2px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
   color: #FFFFFF !important;
-  border-radius: 20px !important; /* styled as cute squircle instead of boring circles */
+  border-radius: 20px !important;
+  /* styled as cute squircle instead of boring circles */
   width: 56px !important;
   height: 56px !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .absolute.flex.flex-col.items-center.gap-1 button[class*="border-[oklch(0.62"] {
   border-color: #FF007F !important;
   box-shadow: 0 0 20px rgba(255, 0, 127, 0.8) !important;
   animation: pulse-red 1.2s ease-in-out infinite !important;
 }
+
 .absolute.flex.flex-col.items-center.gap-1 button[class*="cursor-pointer"] {
   border-color: #06B6D4 !important;
   box-shadow: 0 0 16px rgba(6, 182, 212, 0.5) !important;
 }
+
 .absolute.flex.flex-col.items-center.gap-1 button[class*="cursor-pointer"]:hover {
   transform: scale(1.1) !important;
 }
@@ -452,18 +509,22 @@ button[style*="color:oklch(0.80 0.18 195)"] {
   display: none !important;
 }
 
-/* Chat container card styling override */
+/* Chat panel — Tier 1 (recessed, same as shop) */
 .glass-panel[style*="height: 180"],
 .glass-panel[style*="height:180"] {
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+  background-color: #1a0816 !important;
+  border: 1px solid rgba(255, 80, 160, 0.1) !important;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
+
 .glass-panel[style*="height: 180"] form,
 .glass-panel[style*="height:180"] form {
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   background-color: rgba(255, 255, 255, 0.01) !important;
 }
+
 .glass-panel[style*="height: 180"] span,
 .glass-panel[style*="height:180"] span {
   color: #E2E8F0 !important;
@@ -477,6 +538,7 @@ button[class*="hover:text-red-400"] {
   box-shadow: none !important;
   border-radius: 12px !important;
 }
+
 button[class*="hover:text-red-400"]:hover {
   background-color: rgba(239, 68, 68, 0.08) !important;
   border-color: rgba(239, 68, 68, 0.35) !important;
@@ -491,15 +553,22 @@ button[class*="hover:text-red-400"]:hover {
   color: #FFFFFF !important;
   border-radius: 24px !important;
 }
+
 .fixed.z-50 .glass-panel h2 {
   color: #FFFFFF !important;
   text-shadow: 0 0 16px rgba(255, 255, 255, 0.4) !important;
 }
 
 /* General Typography custom modifiers */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Fredoka', sans-serif !important;
 }
+
 .text-muted-foreground {
   color: #94A3B8 !important;
 }
@@ -512,6 +581,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.3s ease;
   background-color: rgba(255, 255, 255, 0.08);
 }
+
 .danger-segment.filled {
   background-color: #FF007F;
   box-shadow: 0 0 10px #FF007F;
@@ -519,26 +589,68 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Animations declarations */
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 12px rgba(255, 0, 127, 0.4); }
-  50% { box-shadow: 0 0 24px rgba(255, 0, 127, 0.85); }
-}
-@keyframes pulse-blue {
-  0%, 100% { box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
-  50% { box-shadow: 0 0 24px rgba(59, 130, 246, 0.85); }
-}
-@keyframes bomb-bounce {
-  0%, 100% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-6px) scale(1.04); }
-}
-@keyframes glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5)); }
-  50% { filter: drop-shadow(0 0 20px rgba(255, 0, 127, 0.95)); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(255, 0, 127, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 24px rgba(255, 0, 127, 0.85);
+  }
 }
 
-.animate-pulse-red { animation: pulse-red 1.2s ease-in-out infinite !important; }
-.animate-pulse-blue { animation: pulse-blue 2s ease-in-out infinite !important; }
-.animate-bomb-bounce { animation: bomb-bounce 1.2s ease-in-out infinite !important; }
-.animate-glow-pulse { animation: glow-pulse 1.8s ease-in-out infinite !important; }
+@keyframes pulse-blue {
+
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 24px rgba(59, 130, 246, 0.85);
+  }
+}
+
+@keyframes bomb-bounce {
+
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+
+  50% {
+    transform: translateY(-6px) scale(1.04);
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.5));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255, 0, 127, 0.95));
+  }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 1.2s ease-in-out infinite !important;
+}
+
+.animate-pulse-blue {
+  animation: pulse-blue 2s ease-in-out infinite !important;
+}
+
+.animate-bomb-bounce {
+  animation: bomb-bounce 1.2s ease-in-out infinite !important;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 1.8s ease-in-out infinite !important;
+}
 
 /* Real-time Reaction Floating Animation */
 @keyframes float-up-fade {
@@ -546,15 +658,18 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(0) scale(0.5);
     opacity: 0;
   }
+
   15% {
     transform: translateY(-25px) scale(1.3);
     opacity: 1;
   }
+
   100% {
     transform: translateY(-110px) scale(0.9);
     opacity: 0;
   }
 }
+
 .animate-float-up-fade {
   animation: float-up-fade 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -569,6 +684,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px dashed rgba(6, 182, 212, 0.25);
   animation: spin 20s linear infinite;
 }
+
 .arena-hologram-ring-outer {
   position: absolute;
   width: 250px;
@@ -577,6 +693,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 2px solid rgba(168, 85, 247, 0.15);
   box-shadow: 0 0 15px rgba(168, 85, 247, 0.1) inset;
 }
+
 .arena-hologram-ring-inner {
   position: absolute;
   width: 140px;
@@ -587,8 +704,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Laser connection wire mapping */
@@ -600,6 +722,234 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
   z-index: 5;
 }
+
 .arena-laser-line.active {
   background: linear-gradient(90deg, transparent, rgba(255, 0, 127, 0.7) 50%, transparent);
+}
+
+/* ── Tier 4 (Cards): Shop Row Items ── */
+/* Raised above the panel surface with small ambient shadow */
+.glass-panel div.flex.items-center.justify-between.border-white\/5 {
+  background-color: #2e0e26 !important;
+  border: 1px solid rgba(255, 80, 160, 0.2) !important;
+  /* Small lift: ambient shadow */
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 3px 8px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+/* On hover: flat neo-offset appears — tactile */
+.glass-panel div.flex.items-center.justify-between.border-white\/5:hover {
+  transform: translateY(-1px) !important;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.55),
+    0 6px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 0, 127, 0.3) !important;
+}
+
+/* ── Tier 4 (Chips): Cost badge — floating chip ── */
+.glass-panel div.bg-black.border-\[\#EAB308\]\/30 {
+  background-color: #3d1133 !important;
+  border: 1px solid rgba(255, 80, 160, 0.25) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 6px !important;
+}
+
+/* ── Tier 4 (Chips): Icon backdrop ── */
+.glass-panel span.w-10.h-10.bg-black {
+  background-color: #3d1133 !important;
+  border: 1px solid rgba(255, 80, 160, 0.2) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  border-radius: 8px !important;
+}
+
+/* Disabled buttons inside shop and abilities */
+button:disabled {
+  background-color: #1a0715 !important;
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.2) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* ── Tier 4 (Cards): Ability slots ── */
+.glass-panel button[title*="Owned:"] {
+  background-color: #2e0e26 !important;
+  border: 1px solid rgba(255, 80, 160, 0.2) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 3px 8px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+  opacity: 1 !important;
+}
+
+.glass-panel button[title*="Owned:"]:not(:disabled) {
+  background-color: #3d1133 !important;
+}
+
+/* On hover: lifts further */
+.glass-panel button[title*="Owned:"]:not(:disabled):hover {
+  transform: translateY(-1px) !important;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.55),
+    0 6px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 0, 127, 0.35) !important;
+}
+
+/* ── Tier 5 (Floating): Shortcut keycap ── */
+.glass-panel button[title*="Owned:"] span.absolute.top-1.left-1\.5 {
+  background-color: #0d0209 !important;
+  border: 1px solid rgba(255, 0, 127, 0.4) !important;
+  color: #FF80C0 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.7) !important;
+}
+
+/* Inner icon box inside abilities */
+.glass-panel button[title*="Owned:"] div.w-12.h-12 {
+  background-color: #1f0a1a !important;
+  border: 1px solid rgba(255, 80, 160, 0.15) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4) inset !important;
+  border-radius: 6px !important;
+}
+
+/* Count badge inside abilities */
+.glass-panel button[title*="Owned:"] span.absolute.bottom-1\.5.right-1\.5 {
+  background-color: #FF007F !important;
+  border: 1.5px solid #000000 !important;
+  box-shadow: 1.5px 1.5px 0px 0px #000000 !important;
+  color: #FFFFFF !important;
+  border-radius: 4px !important;
+}
+
+/* --- Lobby Sidebar Brutalist Styling --- */
+
+/* ── Tier 4 (Cards): Prize pool container ── */
+.glass-panel div.relative.overflow-hidden.border-\[\#EAB308\]\/30 {
+  background-color: #2e0e26 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 80, 160, 0.22) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 3px 8px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+}
+
+.glass-panel div.relative.overflow-hidden.border-\[\#EAB308\]\/30 span.text-2xl {
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* ── Tier 4 (Cards): Room code badge ── */
+.glass-panel div.flex.items-center.gap-1\.5.bg-\[\#06060A\]\/85 {
+  background-color: #0d0209 !important;
+  border: 1px solid rgba(255, 80, 160, 0.2) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+  border-radius: 6px !important;
+}
+
+/* ── Tier 4 (Cards): Stat chips ── */
+.glass-panel div.grid-cols-3 div.flex-col {
+  background-color: #2e0e26 !important;
+  border: 1px solid rgba(255, 80, 160, 0.18) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 6px !important;
+}
+
+/* Alive chip — hot pink tint */
+.glass-panel div.grid-cols-3 div.bg-\[\#22C55E\]\/8 {
+  background-color: rgba(255, 0, 127, 0.06) !important;
+  border: 1px solid rgba(255, 0, 127, 0.3) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 0 8px rgba(255, 0, 127, 0.08) !important;
+  border-radius: 6px !important;
+}
+
+/* ── Tier 4 (Cards): Player row cards ── */
+.glass-panel div.flex.items-center.gap-2.px-2\.5.py-1\.5 {
+  background-color: #2e0e26 !important;
+  border: 1px solid rgba(255, 80, 160, 0.18) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 8px !important;
+}
+
+/* Bomb holder row card — vivid red lift */
+.glass-panel div.flex.items-center.gap-2.px-2\.5.py-1\.5.bg-\[\#FF007F\]\/10 {
+  background-color: #3d1133 !important;
+  border: 1px solid rgba(255, 0, 127, 0.45) !important;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(255, 0, 127, 0.12) !important;
+}
+
+/* Me/user row card */
+.glass-panel div.flex.items-center.gap-2.px-2\.5.py-1\.5.bg-\[\#FF5F1F\]\/10 {
+  background-color: #3d1133 !important;
+  border: 1px solid rgba(255, 77, 166, 0.35) !important;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 0 10px rgba(255, 77, 166, 0.1) !important;
+}
+
+/* ── Avatar squares ── */
+.glass-panel div.w-8.h-8.rounded-lg.flex {
+  background-color: #1f0a1a !important;
+  border: 1px solid rgba(255, 80, 160, 0.2) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4) inset !important;
+  border-radius: 6px !important;
+}
+
+.glass-panel div.w-8.h-8.rounded-lg.flex.border-\[\#FF007F\] {
+  border-color: rgba(255, 0, 127, 0.6) !important;
+}
+
+.glass-panel div.w-8.h-8.rounded-lg.flex.border-\[\#FF5F1F\] {
+  border-color: rgba(255, 77, 166, 0.5) !important;
+}
+
+/* ── Tier 4: Waiting for players pill ── */
+.glass-panel div.border-dashed.border-\[\#FF5F1F\]\/45 {
+  background-color: #2e0e26 !important;
+  border: 1px dashed rgba(255, 0, 127, 0.4) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+  border-radius: 8px !important;
+}
+
+/* ── Tier 5 (Buttons): Leave room + waiting host ── */
+/* Buttons sit highest with flat neo offset for tactile feel */
+.glass-panel button[class*="text-muted-foreground"],
+.glass-panel button[onClick*="handleLeave"] {
+  background-color: #2e0e26 !important;
+  border: 1px solid rgba(255, 80, 160, 0.25) !important;
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.5),
+    0 3px 8px rgba(0,0,0,0.25) !important;
+  color: #FFC0D8 !important;
+  border-radius: 8px !important;
+}
+
+.glass-panel button[class*="text-muted-foreground"]:hover,
+.glass-panel button[onClick*="handleLeave"]:hover {
+  color: #FF007F !important;
+  border-color: rgba(255, 0, 127, 0.45) !important;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.55),
+    0 0 12px rgba(255, 0, 127, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+.glass-panel div.text-center.text-\[10px\].text-muted-foreground {
+  background-color: #2e0e26 !important;
+  border: 1px solid rgba(255, 80, 160, 0.2) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+  border-radius: 8px !important;
+  color: #FFC0D8 !important;
 }
