@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useTransition, useRef } from 'react'
-import { passBomb, sendChatMessage, usePower } from '@/app/actions/game'
+import { useState, useEffect, useTransition, useRef, useCallback } from 'react'
+import { passBomb, sendChatMessage, usePower, buyPower, buyAndUsePower } from '@/app/actions/game'
+import { POWER_CATALOG } from '@/lib/types'
 import type { Room, Player, GameEvent, PowerType } from '@/lib/types'
-import { ShieldAlert, Snowflake, Sparkles, EyeOff, Heart, Lock, Coins, Flame, Cloud, Smile } from 'lucide-react'
+import { ShieldAlert, Snowflake, Sparkles, EyeOff, Heart, Lock, Coins, Flame, Cloud, Smile, Copy, Check } from 'lucide-react'
 
 interface Props {
   room: Room | null
@@ -21,6 +22,7 @@ const abilityColors: Record<PowerType, { bg: string; border: string; text: strin
   double_points: { bg: 'rgba(34, 197, 94, 0.05)', border: 'rgba(34, 197, 94, 0.4)', text: 'text-[#22C55E]' },
   smoke_screen: { bg: 'rgba(148, 163, 184, 0.05)', border: 'rgba(148, 163, 184, 0.4)', text: 'text-slate-400' },
   nine_lives: { bg: 'rgba(255, 0, 127, 0.05)', border: 'rgba(255, 0, 127, 0.4)', text: 'text-[#FF007F]' },
+  shield: { bg: 'rgba(234, 179, 8, 0.05)', border: 'rgba(234, 179, 8, 0.4)', text: 'text-[#EAB308]' },
 }
 
 const abilityShortnames: Record<PowerType, string> = {
@@ -29,6 +31,7 @@ const abilityShortnames: Record<PowerType, string> = {
   double_points: '2X',
   smoke_screen: 'SMK',
   nine_lives: '9LIV',
+  shield: 'SHLD',
 }
 
 export function ArenaPanel({ room, players, events, myPlayer, userId, reactions, sendReaction }: Props) {
@@ -41,6 +44,110 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
   const [errorMsg, setErrorMsg] = useState('')
   const eventsEndRef = useRef<HTMLDivElement>(null)
   const lastExplodeEventRef = useRef<string | null>(null)
+
+  const [copied, setCopied] = useState(false)
+  const handleCopyCode = () => {
+    if (!room?.code) return
+    navigator.clipboard.writeText(room.code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Ball passing animation states and audio effects
+  const [isJumping, setIsJumping] = useState(false)
+  const prevHolderIdRef = useRef<string | null | undefined>(null)
+
+  // Audio references
+  const tickAudioRef = useRef<HTMLAudioElement | null>(null)
+  const prevStatusRef = useRef<'waiting' | 'playing' | 'finished' | null>(null)
+  const prevPlayersCountRef = useRef<number>(0)
+
+  // Play tick.mp3 continuously during gameplay
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!tickAudioRef.current) {
+      tickAudioRef.current = new Audio('/tick.mp3')
+      tickAudioRef.current.loop = true
+    }
+
+    const audio = tickAudioRef.current
+    if (room?.status === 'playing') {
+      audio.play().catch(err => {
+        console.log('Tick audio blocked, queuing for interaction:', err)
+        const unlockTick = () => {
+          if (room?.status === 'playing') {
+            audio.play().catch(e => console.log('Tick play failed after interaction:', e))
+          }
+          document.removeEventListener('click', unlockTick)
+          document.removeEventListener('keydown', unlockTick)
+        }
+        document.addEventListener('click', unlockTick)
+        document.addEventListener('keydown', unlockTick)
+      })
+    } else {
+      audio.pause()
+      audio.currentTime = 0
+    }
+
+    return () => {
+      audio.pause()
+    }
+  }, [room?.status])
+
+  // Helper function to play cat.mp3 with auto-unlock fallback
+  const playCatSound = useCallback(() => {
+    if (typeof window === 'undefined') return
+    const audio = new Audio('/cat.mp3')
+    audio.play().catch(err => {
+      console.log('Cat audio blocked, queuing for interaction:', err)
+      const unlockAndPlay = () => {
+        const retryAudio = new Audio('/cat.mp3')
+        retryAudio.play().catch(e => console.log('Cat audio play failed after interaction:', e))
+        document.removeEventListener('click', unlockAndPlay)
+        document.removeEventListener('keydown', unlockAndPlay)
+      }
+      document.addEventListener('click', unlockAndPlay)
+      document.addEventListener('keydown', unlockAndPlay)
+    })
+  }, [])
+
+  // Play cat.mp3 on initial room entry (creating or joining room)
+  useEffect(() => {
+    playCatSound()
+  }, [playCatSound])
+
+  // Play cat.mp3 on state changes (ball moves, players join, game start/end)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // 1. Player joins
+    if (players.length > prevPlayersCountRef.current && prevPlayersCountRef.current > 0) {
+      playCatSound()
+    }
+    prevPlayersCountRef.current = players.length
+
+    // 2. Game starts or ends
+    if (room?.status && prevStatusRef.current && room.status !== prevStatusRef.current) {
+      playCatSound()
+    }
+    prevStatusRef.current = room?.status ?? null
+
+    // 3. Ball movement (potato holder changes)
+    const currentHolderId = room?.bomb_holder_id
+    if (currentHolderId && currentHolderId !== prevHolderIdRef.current && prevHolderIdRef.current !== undefined) {
+      playCatSound()
+
+      // Also trigger jumping pass animation
+      if (prevHolderIdRef.current) {
+        setIsJumping(true)
+        const timer = setTimeout(() => {
+          setIsJumping(false)
+        }, 500)
+        return () => clearTimeout(timer)
+      }
+    }
+    prevHolderIdRef.current = currentHolderId
+  }, [players.length, room?.status, room?.bomb_holder_id, playCatSound])
 
   // Reaction Picker state & refs
   const [showPicker, setShowPicker] = useState(false)
@@ -124,8 +231,26 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
     })
   }
 
+  function handleBuy(type: PowerType, targetId?: string) {
+    if (!room || !myPlayer) return
+    setErrorMsg('')
+
+    if (type === 'freeze' && !targetId) {
+      setSelectingFreeze(true)
+      return
+    }
+
+    setSelectingFreeze(false)
+    startTransition(async () => {
+      const res = await buyAndUsePower(userId, room.id, type, targetId)
+      if (res.error) {
+        setErrorMsg(res.error)
+      }
+    })
+  }
+
   const alivePlayers = players.filter(p => p.is_alive)
-  
+
   // Hides who is holding the POTATO from other players for 4 seconds if Smoke Screen is active
   const isSmokeScreenActive = players.some(p => {
     const pPowers = (p.powers ?? {}) as Record<string, any>
@@ -135,7 +260,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
   const bombHolder = players.find(p => p.id === room?.bomb_holder_id)
   const isMeHolding = bombHolder?.user_id === userId
-  const shouldHideHolder = isSmokeScreenActive && !isMeHolding
+  const shouldHideHolder = isSmokeScreenActive
 
   const iHaveBomb = room?.bomb_holder_id === myPlayer?.id
   const isFrozen = !!(myPlayer?.is_frozen && myPlayer.frozen_until && new Date(myPlayer.frozen_until) > new Date())
@@ -152,6 +277,25 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
   const myPowers = (myPlayer?.powers ?? {}) as Record<string, any>
   const angleStep = alivePlayers.length > 1 ? (2 * Math.PI) / alivePlayers.length : 0
 
+  // Compute ball coordinates
+  let ballX = 150
+  let ballY = 150
+  let showBall = false
+
+  if (room?.status === 'playing' && room.bomb_holder_id && !shouldHideHolder) {
+    const holderIdx = alivePlayers.findIndex(p => p.id === room.bomb_holder_id)
+    if (holderIdx !== -1) {
+      const angle = angleStep * holderIdx - Math.PI / 2
+      const r = alivePlayers.length <= 3 ? 95 : 115
+      const px = Math.cos(angle) * r + 150 - 34
+      const py = Math.sin(angle) * r + 150 - 34
+      // Position on the right upside of the cat (top-right of 64x64 avatar button inside 68x68 wrapper)
+      ballX = px + 54
+      ballY = py - 4
+      showBall = true
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 h-full">
       {/* 1. Main Game Arena Card */}
@@ -165,6 +309,53 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
             <span className="font-display font-black text-6xl text-[#FF007F] animate-explosion">
               BOOM!
             </span>
+          </div>
+        )}
+
+        {/* Smoke Screen Overlay */}
+        {isSmokeScreenActive && (
+          <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden bg-black/25 backdrop-blur-[2px]">
+            {/* Drifting smoke clouds */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] opacity-40 select-none">
+              <div className="absolute inset-0 bg-radial from-slate-400/40 via-slate-500/10 to-transparent blur-3xl animate-pulse duration-1000" />
+              <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-slate-300/30 rounded-full blur-3xl animate-smoke-drift-1" />
+              <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-slate-400/25 rounded-full blur-3xl animate-smoke-drift-2" />
+              <div className="absolute top-[20%] right-[-20%] w-[50%] h-[50%] bg-slate-200/20 rounded-full blur-3xl animate-smoke-drift-3" />
+            </div>
+            {/* Floating Cloud Icons */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-white/30 flex gap-4 animate-bounce">
+                <Cloud className="w-12 h-12 text-slate-300/40 blur-[1px] animate-pulse" />
+                <Cloud className="w-16 h-16 text-slate-400/30 blur-[2px] animate-pulse delay-200" />
+                <Cloud className="w-10 h-10 text-slate-300/40 blur-[1px] animate-pulse delay-500" />
+              </div>
+            </div>
+            <style>{`
+              @keyframes smokeDrift1 {
+                0% { transform: translate(0, 0) scale(1); }
+                50% { transform: translate(15%, 10%) scale(1.15); }
+                100% { transform: translate(0, 0) scale(1); }
+              }
+              @keyframes smokeDrift2 {
+                0% { transform: translate(0, 0) scale(1.1); }
+                50% { transform: translate(-10%, -15%) scale(0.85); }
+                100% { transform: translate(0, 0) scale(1.1); }
+              }
+              @keyframes smokeDrift3 {
+                0% { transform: translate(0, 0) scale(0.9); }
+                50% { transform: translate(-15%, 15%) scale(1.2); }
+                100% { transform: translate(0, 0) scale(0.9); }
+              }
+              .animate-smoke-drift-1 {
+                animation: smokeDrift1 8s ease-in-out infinite;
+              }
+              .animate-smoke-drift-2 {
+                animation: smokeDrift2 10s ease-in-out infinite;
+              }
+              .animate-smoke-drift-3 {
+                animation: smokeDrift3 7s ease-in-out infinite;
+              }
+            `}</style>
           </div>
         )}
 
@@ -219,13 +410,27 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
             <p className="font-display text-muted-foreground text-sm uppercase tracking-[0.2em] font-black animate-pulse">
               Lobby: Waiting for players...
             </p>
-            <p className="text-xs text-muted-foreground">
-              Share code{' '}
-              <span className="text-[#FF5F1F] font-display font-bold select-all bg-black/40 border border-white/10 px-2.5 py-1 rounded-lg">
-                {room?.code}
-              </span>{' '}
-              to invite
-            </p>
+            <div className="flex flex-col items-center gap-2 mt-1">
+              <span className="text-sm font-semibold text-muted-foreground">
+                Share code to invite
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl text-[#FF5F1F] font-display font-black tracking-wider bg-black/50 border-2 border-white/10 px-4 py-1.5 rounded-xl shadow-lg select-all">
+                  {room?.code}
+                </span>
+                <button
+                  onClick={handleCopyCode}
+                  className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-[#FF5F1F]/10 hover:border-[#FF5F1F]/50 transition-all text-white flex items-center justify-center cursor-pointer active:scale-95 pointer-events-auto"
+                  title="Copy Invite Code"
+                >
+                  {copied ? (
+                    <Check className="w-4.5 h-4.5 text-green-400" />
+                  ) : (
+                    <Copy className="w-4.5 h-4.5 text-white" />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -233,7 +438,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
           <div className="flex-1 w-full relative flex items-center justify-center min-h-0 select-none">
             {/* Circular active players loop wrapper */}
             <div className="relative" style={{ width: 300, height: 300 }}>
-              
+
               {/* Central Holographic Arena floor details */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="arena-hologram-floor flex items-center justify-center">
@@ -275,6 +480,31 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 </div>
               </div>
 
+              {/* Dynamic Passing Ball */}
+              {showBall && (
+                <div
+                  className="absolute transition-all duration-500 ease-out z-30 pointer-events-none"
+                  style={{
+                    left: ballX,
+                    top: ballY,
+                    width: 24,
+                    height: 24,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  <div
+                    className={`w-full h-full rounded-full overflow-hidden border border-[#FF007F] shadow-[0_0_10px_rgba(255,0,127,0.8)] bg-black ${isJumping ? 'animate-ball-jump' : 'animate-bomb-bounce'
+                      }`}
+                  >
+                    <img
+                      src="/ball.jpg"
+                      alt="Passing Ball"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Loop layout of players around the cat */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
@@ -315,15 +545,14 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     <button
                       onClick={() => canPass && handlePass(p.id)}
                       disabled={!canPass}
-                      className={`avatar-circle w-16 h-16 rounded-2xl border-3 flex items-center justify-center overflow-hidden transition-all relative select-none ${
-                        showBombVisual
+                      className={`avatar-circle w-16 h-16 rounded-2xl border-3 flex items-center justify-center overflow-hidden transition-all relative select-none ${showBombVisual
                           ? 'border-[#FF007F] animate-pulse shadow-[0_0_15px_#FF007F]'
                           : canPass
-                          ? 'border-[#06B6D4] hover:scale-110 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                          : isMe
-                          ? 'border-[#FF5F1F]'
-                          : 'border-border/80'
-                      } bg-[#0E0E18]`}
+                            ? 'border-[#06B6D4] hover:scale-110 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                            : isMe
+                              ? 'border-[#FF5F1F]'
+                              : 'border-border/80'
+                        } bg-[#0E0E18]`}
                       title={canPass ? `Pass bomb to ${p.nickname}` : p.nickname}
                     >
                       {p.avatar.endsWith('.png') ? (
@@ -331,22 +560,13 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                       ) : (
                         <span className="text-2xl">{p.avatar}</span>
                       )}
-                      {showBombVisual && (
-                        <span className="absolute -top-2 -right-2 animate-bomb-bounce block w-6 h-6 z-20">
-                          <img
-                            src="/neon-cat.png"
-                            alt="Neon Cat"
-                            className="w-full h-full object-contain"
-                          />
-                        </span>
-                      )}
                       {p.is_frozen && p.frozen_until && new Date(p.frozen_until) > new Date() && <span className="absolute -bottom-1 -right-1 text-xs">❄️</span>}
                       {p.shield_active && <span className="absolute -bottom-1 -left-1 text-xs">🛡️</span>}
+                      {p.reverse_active && <span className="absolute -top-1 -right-1 text-xs" title="Mirror Active">🔮</span>}
                     </button>
                     <span
-                      className={`text-center leading-none font-display text-[9px] font-bold max-w-full truncate ${
-                        isMe ? 'text-[#FF5F1F]' : 'text-foreground'
-                      }`}
+                      className={`text-center leading-none font-display text-[9px] font-bold max-w-full truncate ${isMe ? 'text-[#FF5F1F]' : 'text-foreground'
+                        }`}
                     >
                       {p.nickname}
                     </span>
@@ -382,7 +602,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 Ability Coins
               </span>
               <span className="text-[#FF5F1F] font-black">{myPlayer?.points ?? 0}</span>
-              <Coins className="w-3.5 h-3.5 text-[#EAB308]" title="Ability Coins" />
+              <span title="Ability Coins"><Coins className="w-3.5 h-3.5 text-[#EAB308]" /></span>
             </div>
           </div>
         )}
@@ -400,7 +620,14 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               .map(p => (
                 <button
                   key={p.id}
-                  onClick={() => handleUseAbility('freeze', p.id)}
+                  onClick={() => {
+                    const ownedCount = myPowers['freeze'] ?? 0
+                    if (ownedCount > 0) {
+                      handleUseAbility('freeze', p.id)
+                    } else {
+                      handleBuy('freeze', p.id)
+                    }
+                  }}
                   disabled={isPending}
                   className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 hover:bg-[#06B6D4]/10 hover:border-[#06B6D4] rounded-xl text-xs transition-all text-white"
                 >
@@ -444,52 +671,85 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
             {abilitySlots.map((slot, index) => {
               const ownedCount = myPowers[slot.key] ?? 0
               const isPlaying = room?.status === 'playing'
+              const cost = POWER_CATALOG[slot.key].cost
+              const canAfford = (myPlayer?.points ?? 0) >= cost
+              const canBuy = isPlaying && canAfford && !isPending
               const canUse = isPlaying && ownedCount > 0 && !isPending
               const meta = abilityColors[slot.key]
 
               return (
-                <button
+                <div
                   key={slot.key}
-                  disabled={!canUse}
-                  onClick={() =>
-                    slot.key === 'freeze' ? setSelectingFreeze(true) : handleUseAbility(slot.key)
-                  }
-                  className={`flex-1 flex flex-col items-center justify-center py-3 border rounded-xl h-full transition-all relative ${
-                    canUse
-                      ? 'bg-black/40 border-[1px] hover:scale-105 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.2)]'
-                      : 'bg-black/15 border-white/5 opacity-60 cursor-not-allowed'
-                  }`}
-                  style={canUse ? { borderColor: meta.border, boxShadow: `0 0 12px ${meta.border.replace('0.4', '0.15')}` } : {}}
-                  title={`${slot.name} (Owned: ${ownedCount})`}
+                  title={`${slot.name}: ${POWER_CATALOG[slot.key].description}`}
+                  className="flex-1 flex flex-col items-center justify-between p-1.5 border border-white/5 rounded-xl h-full bg-black/25 relative overflow-hidden group"
+                  style={canUse ? { borderColor: meta.border, boxShadow: `0 0 10px ${meta.border.replace('0.4', '0.08')}` } : {}}
                 >
-                  {/* Shortcut keycap */}
-                  <span className="absolute top-1 left-1.5 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[7px] font-mono font-bold leading-none text-muted-foreground">
-                    {index + 1}
+                  {/* Background emoji to fill empty space */}
+                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl opacity-55 pointer-events-none select-none z-0 group-hover:scale-125 transition-transform duration-300">
+                    {POWER_CATALOG[slot.key].emoji}
                   </span>
 
-                  {/* Inner Box with Text */}
-                  <div
-                    className="w-12 h-12 rounded-lg border flex items-center justify-center font-display text-[9px] font-black tracking-wider transition-all select-none my-1 bg-[#0E0E18]/90"
-                    style={{
-                      borderColor: canUse ? meta.border : 'rgba(255, 255, 255, 0.08)',
-                      color: canUse ? meta.text.replace('text-[', '').replace(']', '') : 'rgba(255, 255, 255, 0.35)',
-                      boxShadow: canUse ? `inset 0 0 10px ${meta.border.replace('0.4', '0.2')}, 0 0 8px ${meta.border.replace('0.4', '0.1')}` : 'none'
-                    }}
+                  {/* USE button area */}
+                  <button
+                    disabled={!canUse}
+                    onClick={() =>
+                      slot.key === 'freeze' ? setSelectingFreeze(true) : handleUseAbility(slot.key)
+                    }
+                    className={`w-full flex-1 flex flex-col items-center justify-center transition-all relative rounded-lg border border-transparent z-10 ${canUse
+                        ? 'hover:scale-102 cursor-pointer bg-white/2 hover:bg-white/5 shadow-[0_2px_6px_rgba(0,0,0,0.15)]'
+                        : 'cursor-not-allowed'
+                      }`}
+                    title={`Use ${slot.name} - ${POWER_CATALOG[slot.key].description} (Owned: ${ownedCount})`}
                   >
-                    {abilityShortnames[slot.key]}
-                  </div>
-
-                  {/* Name and Count */}
-                  <span className="text-[8px] font-bold truncate max-w-full font-display mt-0.5 text-muted-foreground">
-                    {slot.name}
-                  </span>
-
-                  {ownedCount > 0 && (
-                    <span className="absolute bottom-1.5 right-1.5 px-1 py-0.5 rounded bg-[#A855F7]/25 text-[7px] font-bold text-white font-mono leading-none border border-[#A855F7]/30">
-                      x{ownedCount}
+                    {/* Shortcut keycap */}
+                    <span className="absolute top-1 left-1.5 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[6px] font-mono font-bold leading-none text-muted-foreground">
+                      {index + 1}
                     </span>
-                  )}
-                </button>
+
+                    {/* Shortname Box with Emoji */}
+                    <div
+                      className="w-12 h-12 rounded-full border flex flex-col items-center justify-center font-display transition-all select-none my-0.5 bg-[#0E0E18]/95 z-10 gap-0.5"
+                      style={{
+                        borderColor: canUse ? meta.border : 'rgba(255, 255, 255, 0.08)',
+                        boxShadow: canUse ? `inset 0 0 10px ${meta.border.replace('0.4', '0.2')}` : 'none'
+                      }}
+                    >
+                      <span className="text-lg leading-none select-none">{POWER_CATALOG[slot.key].emoji}</span>
+                      <span
+                        className="text-[6px] font-black tracking-wider leading-none"
+                        style={{
+                          color: canUse ? meta.text.replace('text-[', '').replace(']', '') : 'rgba(255, 255, 255, 0.35)',
+                        }}
+                      >
+                        {abilityShortnames[slot.key]}
+                      </span>
+                    </div>
+
+                    {/* Name with Emoji */}
+                    <span className={`text-[7.5px] font-bold truncate max-w-full font-display leading-none z-10 flex items-center gap-0.5 ${canUse ? 'text-white' : 'text-muted-foreground'}`}>
+                      {POWER_CATALOG[slot.key].emoji} {slot.name}
+                    </span>
+
+                    {ownedCount > 0 && (
+                      <span className="absolute top-1 right-1 px-1 py-0.5 rounded bg-[#A855F7]/30 text-[7px] font-bold text-white font-mono leading-none border border-[#A855F7]/30">
+                        x{ownedCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* BUY button area */}
+                  <button
+                    disabled={!canBuy}
+                    onClick={() => handleBuy(slot.key)}
+                    className={`w-full mt-1.5 py-1 rounded-lg text-[8px] font-display font-black uppercase tracking-wider border transition-all z-10 ${canBuy
+                        ? 'bg-[#FF007F] border-[#FF007F] text-white hover:scale-105 cursor-pointer shadow-[0_2px_8px_rgba(255,0,127,0.2)]'
+                        : 'bg-black/40 border-white/5 text-muted-foreground/30 cursor-not-allowed'
+                      }`}
+                    title={`Buy ${slot.name} - ${POWER_CATALOG[slot.key].description} (Cost: ${cost} pts)`}
+                  >
+                    Buy: {cost}
+                  </button>
+                </div>
               )
             })}
           </div>
@@ -497,8 +757,14 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
         {/* Right column: Chat Console */}
         <div className="glass-panel glow-purple rounded-2xl flex flex-col" style={{ width: 280 }}>
+          <div className="flex items-center gap-2 text-left border-b border-white/5 pb-1.5 px-4 pt-3.5 shrink-0">
+            <span className="w-1 h-3.5 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
+            <span className="font-display text-[10px] uppercase tracking-[0.15em] text-foreground font-black">
+              Chat & Reaction
+            </span>
+          </div>
           {/* Messages display */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 min-h-0 select-text text-left">
+          <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1.5 min-h-0 select-text text-left">
             {events.slice(-30).map(ev => (
               <div key={ev.id} className="text-[11px] leading-relaxed">
                 {ev.type === 'chat' && ev.nickname ? (
@@ -572,7 +838,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
             <input
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
-              placeholder="Type a message..."
+              placeholder="Write chat and reaction..."
               maxLength={80}
               className="flex-1 bg-transparent! border-none! shadow-none! rounded-none! py-1! px-0! text-xs focus:ring-0 placeholder:text-muted-foreground"
             />

@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createRoom, joinRoom, getRoomBuyIn } from '@/app/actions/game'
 import { AVATARS } from '@/lib/types'
 import { PawLogo } from '@/components/pawnic/paw-logo'
-import { isConnected, getAddress, requestAccess, signTransaction } from '@stellar/freighter-api'
+import { StellarWalletsKit } from "@creit-tech/stellar-wallets-kit/sdk"
+import { defaultModules } from '@creit-tech/stellar-wallets-kit/modules/utils'
+import { SwkAppDarkTheme } from "@creit-tech/stellar-wallets-kit/types"
 import { Horizon, TransactionBuilder, Networks, Asset, Operation } from '@stellar/stellar-sdk'
 
 const ADJECTIVES = ['Sneaky', 'Fluffy', 'Grumpy', 'Speedy', 'Tiny', 'Jumpy', 'Dizzy', 'Fuzzy', 'Wacky', 'Sly']
@@ -43,48 +45,48 @@ export default function LandingPage() {
     setNickname(randomNickname())
     getOrCreateUserId() // ensure UUID is seeded
 
-    // Attempt Freighter auto-connect
-    isConnected().then(connected => {
-      if (connected && connected.isConnected) {
-        getAddress().then(res => {
-          const pubkey = res.address
-          if (pubkey) {
-            setWalletAddress(pubkey)
+    if (typeof window !== 'undefined') {
+      StellarWalletsKit.init({
+        theme: SwkAppDarkTheme,
+        modules: defaultModules(),
+      })
+
+      // Attempt auto-connect
+      StellarWalletsKit.getAddress()
+        .then(({ address }) => {
+          if (address) {
+            setWalletAddress(address)
             const server = new Horizon.Server('https://horizon-testnet.stellar.org')
-            server.loadAccount(pubkey).then(account => {
+            server.loadAccount(address).then(account => {
               const native = account.balances.find(b => b.asset_type === 'native')
               setWalletBalance(native ? Number(native.balance).toFixed(2) : '0.00')
             }).catch(console.error)
           }
-        }).catch(console.error)
-      }
-    }).catch(console.error)
+        })
+        .catch(() => {
+          // Swallow error if wallet not connected yet
+        })
+    }
   }, [])
 
   async function connectWallet() {
     setError('')
     try {
-      const connection = await isConnected()
-      if (!connection || !connection.isConnected) {
-        setError('Freighter wallet not connected or not installed. Please add Freighter extension.')
-        return null
-      }
-      const res = await requestAccess()
-      const pubkey = res.address
-      if (!pubkey) {
+      const { address } = await StellarWalletsKit.authModal()
+      if (!address) {
         setError('Failed to retrieve public key.')
         return null
       }
-      setWalletAddress(pubkey)
+      setWalletAddress(address)
 
       const server = new Horizon.Server('https://horizon-testnet.stellar.org')
-      const account = await server.loadAccount(pubkey)
+      const account = await server.loadAccount(address)
       const native = account.balances.find(b => b.asset_type === 'native')
       setWalletBalance(native ? Number(native.balance).toFixed(2) : '0.00')
-      return pubkey
+      return address
     } catch (err: any) {
       console.error(err)
-      setError(err.message || 'Failed to connect Freighter wallet.')
+      setError(err.message || 'Failed to connect wallet.')
       return null
     }
   }
@@ -112,9 +114,12 @@ export default function LandingPage() {
       .setTimeout(60)
       .build()
 
-    const signResult = await signTransaction(tx.toXDR(), { networkPassphrase: Networks.TESTNET })
-    if (signResult.error) {
-      throw new Error(signResult.error)
+    const signResult = await StellarWalletsKit.signTransaction(tx.toXDR(), {
+      networkPassphrase: Networks.TESTNET,
+      address: senderAddress,
+    })
+    if (!signResult || !signResult.signedTxXdr) {
+      throw new Error('Transaction signing rejected or failed.')
     }
     const txEnvelope = TransactionBuilder.fromXDR(signResult.signedTxXdr, Networks.TESTNET)
     const result = await server.submitTransaction(txEnvelope)
@@ -135,7 +140,7 @@ export default function LandingPage() {
           addr = connectedAddr
         }
 
-        setError('Confirm the buy-in payment transaction in Freighter...')
+        setError('Confirm the buy-in payment transaction in your wallet...')
         const txHash = await payBuyInXlm(amountVal, addr)
         setError('Verifying transaction on Horizon...')
 
@@ -165,7 +170,7 @@ export default function LandingPage() {
           addr = connectedAddr
         }
 
-        setError(`Confirm your buy-in payment of ${amountVal} XLM in Freighter...`)
+        setError(`Confirm your buy-in payment of ${amountVal} XLM in your wallet...`)
         const txHash = await payBuyInXlm(amountVal, addr)
         setError('Verifying transaction on Horizon...')
 

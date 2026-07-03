@@ -154,7 +154,7 @@ export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
         <div className="relative border-l border-white/5 pl-4 ml-2.5 space-y-4 overflow-y-auto flex-1 min-h-0 pr-1 select-none text-left">
           {events
             .filter(ev => ev.type !== 'chat') // skip simple chat messages in activity feed
-            .slice(-15)
+            .slice(-30) // increased size so we can see more activities
             .reverse() // show latest at top
             .map(ev => {
               const meta = resolveEventMeta(ev)
@@ -187,76 +187,54 @@ export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
         </div>
       </div>
 
-      {/* 2. Power Shop buy grid */}
-      <div className="glass-panel glow-purple rounded-2xl p-5 shrink-0 flex flex-col">
-        <div className="flex items-center gap-2 border-b border-white/5 pb-2.5 mb-3.5 shrink-0">
-          <span className="w-1 h-4 rounded-full bg-[#FF007F] shadow-[0_0_8px_#FF007F]" />
-          <ShoppingBag className="w-3.5 h-3.5 text-[#FF007F]" />
+      {/* 2. Leaderboard */}
+      <div className="glass-panel glow-purple rounded-2xl p-5 shrink-0 flex flex-col min-h-0 max-h-[320px]">
+        <div className="flex items-center gap-2 border-b border-white/5 pb-2.5 mb-3 shrink-0">
+          <span className="w-1 h-4 rounded-full bg-[#EAB308] shadow-[0_0_8px_#EAB308]" />
           <span className="font-display text-xs uppercase tracking-[0.2em] font-black text-foreground">
-            Power Shop
-          </span>
-          <span className="ml-auto flex items-center gap-1 font-display font-black text-[11px] text-[#EAB308] bg-[#EAB308]/10 border border-[#EAB308]/25 rounded-lg px-2 py-0.5">
-            {myPlayer.points}
-            <Coins className="w-3 h-3 text-[#EAB308]" />
+            Leaderboard
           </span>
         </div>
 
-        {msg && (
-          <p className="text-xs text-[#FF007F] bg-[#FF007F]/10 border border-[#FF007F]/20 px-3 py-2 rounded-xl mb-2.5 text-left font-display">
-            {msg}
-          </p>
-        )}
-
-        <div className="space-y-3">
-          {POWERS.map(item => {
-            const canAfford = myPlayer.points >= item.cost
-            const canBuy = isPlaying && canAfford && !isPending
-            const ShopIcon = item.icon
-
-            return (
-              <div
-                key={item.key}
-                className="flex items-center justify-between gap-3 border border-white/5 rounded-xl p-3 bg-transparent hover:bg-white/2 hover:border-white/10 transition-all"
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1 text-left">
-                  {/* Backdrop for Emoji in Shop - Square with solid black bg, no translucent purple bubble */}
-                  <span className="w-10 h-10 rounded-lg bg-black flex items-center justify-center shrink-0 border border-white/10">
-                    <ShopIcon className="w-4 h-4" style={{ color: item.color }} />
+        <div className="space-y-2.5 overflow-y-auto flex-1 pr-1">
+          {[...players]
+            .sort((a, b) => b.points - a.points)
+            .map((p, idx) => {
+              const isMe = p.user_id === userId
+              const crownColor = idx === 0 ? 'text-[#EAB308]' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : ''
+              
+              return (
+                <div
+                  key={p.id}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-all ${
+                    isMe
+                      ? 'bg-[#FF5F1F]/10 border-[#FF5F1F]/40 shadow-[0_2px_8px_rgba(255,95,31,0.08)]'
+                      : 'bg-black border-white/5'
+                  }`}
+                >
+                  <span className="font-display font-black text-[10px] w-5 text-left text-muted-foreground">
+                    #{idx + 1}
+                  </span>
+                  
+                  <span className="w-6 h-6 rounded-lg bg-black flex items-center justify-center overflow-hidden shrink-0 border border-white/10">
+                    {p.avatar.endsWith('.png') ? (
+                      <img src={`/${p.avatar}`} alt="Cat" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs">{p.avatar}</span>
+                    )}
                   </span>
 
-                  <div className="min-w-0">
-                    <span className="font-display font-black text-xs text-foreground block tracking-wide">
-                      {item.name}
-                    </span>
-                    <span className="text-[9px] text-muted-foreground block truncate mt-0.5 leading-normal">
-                      {item.description}
-                    </span>
-                  </div>
-                </div>
+                  <span className={`text-xs font-bold truncate flex-1 text-left ${isMe ? 'text-[#FF5F1F]' : 'text-foreground'}`}>
+                    {p.nickname}
+                    {idx < 3 && <span className={`ml-1 text-xs ${crownColor}`} title="Top Ranks">👑</span>}
+                  </span>
 
-                <div className="flex items-center gap-2.5 shrink-0">
-                  {/* Cost badge - Solid black bg with a border */}
-                  <div className="flex items-center gap-1 bg-black border border-[#EAB308]/30 rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-[#EAB308]">
-                    <span>{item.cost}</span>
-                    <Coins className="w-2.5 h-2.5 text-[#EAB308]" />
-                  </div>
-
-                  {/* Buy trigger */}
-                  <button
-                    onClick={() => handleBuy(item.key)}
-                    disabled={!canBuy}
-                    className={`px-3.5 py-1.5 rounded-lg text-[10px] font-display font-black uppercase tracking-wider border transition-all ${
-                      canBuy
-                        ? 'bg-[#FF007F] border-[#FF007F] text-white hover:bg-[#ff2a93] shadow-[0_4px_12px_rgba(255,0,127,0.35)] hover:scale-105 active:scale-95 text-white'
-                        : 'bg-black border-white/5 text-muted-foreground/30 cursor-not-allowed'
-                    }`}
-                  >
-                    Buy
-                  </button>
+                  <span className="font-display font-black text-[10px] text-foreground shrink-0 font-mono">
+                    {p.points} pts
+                  </span>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
         </div>
       </div>
     </div>

@@ -180,22 +180,34 @@ export async function passBomb(userId: string, roomId: string, targetPlayerId: s
   if (!target.is_alive) return { error: 'That player is already out!' }
 
   let actualTargetId = targetPlayerId
+  let reflected = false
 
   // Reverse power: bomb bounces back
   if (target.reverse_active) {
+    reflected = true
+    // 1. Temporarily set holder to target (B) so client pass animation runs
+    await supabase.from('rooms').update({ bomb_holder_id: targetPlayerId }).eq('id', roomId)
+    // 2. Pause to let the ball arrive
+    await new Promise(resolve => setTimeout(resolve, 600))
+    // 3. Bounce back to sender (A)
     actualTargetId = myPlayer.id
     await supabase.from('players').update({ reverse_active: false }).eq('id', targetPlayerId)
     await supabase.from('events').insert({
       room_id: roomId, type: 'power', nickname: target.nickname,
       message: `${target.nickname} reversed the POTATO back to ${myPlayer.nickname}!`,
     })
-  } else if (myPlayer.shield_active) {
-    // Shield bounces back
+  } else if (target.shield_active) {
+    reflected = true
+    // 1. Temporarily set holder to target (B) so client pass animation runs
+    await supabase.from('rooms').update({ bomb_holder_id: targetPlayerId }).eq('id', roomId)
+    // 2. Pause to let the ball arrive
+    await new Promise(resolve => setTimeout(resolve, 600))
+    // 3. Bounce back to sender (A)
     actualTargetId = myPlayer.id
-    await supabase.from('players').update({ shield_active: false }).eq('id', myPlayer.id)
+    await supabase.from('players').update({ shield_active: false }).eq('id', targetPlayerId)
     await supabase.from('events').insert({
-      room_id: roomId, type: 'power', nickname: myPlayer.nickname,
-      message: `${myPlayer.nickname}'s shield deflected the POTATO back!`,
+      room_id: roomId, type: 'power', nickname: target.nickname,
+      message: `${target.nickname}'s shield deflected the POTATO back!`,
     })
   }
 
@@ -206,10 +218,11 @@ export async function passBomb(userId: string, roomId: string, targetPlayerId: s
 
   await supabase.from('rooms').update({ bomb_holder_id: actualTargetId }).eq('id', roomId)
 
-  const finalTarget = actualTargetId === myPlayer.id ? myPlayer : target
   await supabase.from('events').insert({
     room_id: roomId, type: 'pass', nickname: myPlayer.nickname,
-    message: `${myPlayer.nickname} passed the POTATO to ${finalTarget.nickname}${isDouble ? ' (+2pts!)' : ''}`,
+    message: reflected
+      ? `${myPlayer.nickname} tried to pass the POTATO to ${target.nickname}, but it was bounced back!`
+      : `${myPlayer.nickname} passed the POTATO to ${target.nickname}${isDouble ? ' (+2pts!)' : ''}`,
   })
 
   return { success: true }
@@ -238,6 +251,88 @@ export async function buyPower(userId: string, roomId: string, powerType: PowerT
   await supabase.from('events').insert({
     room_id: roomId, type: 'power', nickname: player.nickname,
     message: `${player.nickname} bought ${power.name}`,
+  })
+
+  return { success: true }
+}
+
+export async function buyAndUsePower(userId: string, roomId: string, powerType: PowerType, targetPlayerId?: string) {
+  const supabase = createClient()
+  const power = POWER_CATALOG[powerType]
+  if (!power) return { error: 'Unknown power' }
+
+  // 1. Fetch player
+  const { data: player } = await supabase
+    .from('players').select().eq('room_id', roomId).eq('user_id', userId).single()
+  if (!player) return { error: 'Player not found' }
+
+  // 2. Check if player has enough points
+  if (player.points < power.cost) return { error: `Need ${power.cost} points (you have ${player.points})` }
+
+  // 3. Check if player is frozen
+  const isFrozen = player.is_frozen && player.frozen_until && new Date(player.frozen_until) > new Date()
+  if (isFrozen) return { error: 'You are frozen and cannot use powers!' }
+
+  // 4. Nine Lives is a passive auto-triggered ability, just deduct points and add to inventory
+  if (powerType === 'nine_lives') {
+    const currentPowers = (player.powers ?? {}) as Record<string, number>
+    const newPowers = { ...currentPowers, ['nine_lives']: (currentPowers['nine_lives'] ?? 0) + 1 }
+    const { error } = await supabase.from('players').update({
+      points: player.points - power.cost,
+      powers: newPowers,
+    }).eq('id', player.id)
+    if (error) return { error: error.message }
+    await supabase.from('events').insert({
+      room_id: roomId, type: 'power', nickname: player.nickname,
+      message: `${player.nickname} bought ${power.name}`,
+    })
+    return { success: true }
+  }
+
+  // 5. For other active abilities: deduct points and activate immediately
+  let updatePlayer: Record<string, unknown> = { points: player.points - power.cost }
+  let eventMsg = `${player.nickname} bought and used ${power.name}`
+
+  switch (powerType) {
+    case 'shield':
+      updatePlayer.shield_active = true
+      eventMsg = `${player.nickname} activated Shield - next bomb bounces back!`
+      break
+
+    case 'freeze': {
+      if (!targetPlayerId) return { error: 'Freeze requires a target' }
+      const frozenUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
+      await supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId)
+      const { data: t } = await supabase.from('players').select('nickname').eq('id', targetPlayerId).single()
+      eventMsg = `${player.nickname} froze ${t?.nickname ?? 'a player'} for 10s!`
+      break
+    }
+
+    case 'double_points':
+      updatePlayer.double_points_until = new Date(Date.now() + 10000).toISOString() // 10 seconds!
+      eventMsg = `${player.nickname} activated Catnip - 2x score for 10s!`
+      break
+
+    case 'reverse':
+      updatePlayer.reverse_active = true
+      eventMsg = `${player.nickname} activated Mirror - next transfer will bounce back!`
+      break
+
+    case 'smoke_screen': {
+      const smokeUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
+      const currentPowers = (player.powers ?? {}) as Record<string, any>
+      const powersWithStatus = { ...currentPowers, smoke_screen_until: smokeUntil }
+      updatePlayer.powers = powersWithStatus
+      eventMsg = `${player.nickname} activated Smoke Screen - holding identity is hidden for 10s!`
+      break
+    }
+  }
+
+  const { error } = await supabase.from('players').update(updatePlayer).eq('id', player.id)
+  if (error) return { error: error.message }
+
+  await supabase.from('events').insert({
+    room_id: roomId, type: 'power', nickname: player.nickname, message: eventMsg,
   })
 
   return { success: true }
@@ -276,10 +371,10 @@ export async function usePower(userId: string, roomId: string, powerType: PowerT
 
     case 'freeze': {
       if (!targetPlayerId) return { error: 'Freeze requires a target' }
-      const frozenUntil = new Date(Date.now() + 3000).toISOString() // 3 seconds!
+      const frozenUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
       await supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId)
       const { data: t } = await supabase.from('players').select('nickname').eq('id', targetPlayerId).single()
-      eventMsg = `${player.nickname} froze ${t?.nickname ?? 'a player'} for 3s!`
+      eventMsg = `${player.nickname} froze ${t?.nickname ?? 'a player'} for 10s!`
       break
     }
 
@@ -294,10 +389,10 @@ export async function usePower(userId: string, roomId: string, powerType: PowerT
       break
 
     case 'smoke_screen': {
-      const smokeUntil = new Date(Date.now() + 4000).toISOString() // 4 seconds!
+      const smokeUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
       const powersWithStatus = { ...newPowers, smoke_screen_until: smokeUntil }
       updatePlayer.powers = powersWithStatus
-      eventMsg = `${player.nickname} activated Smoke Screen - holding identity is hidden for 4s!`
+      eventMsg = `${player.nickname} activated Smoke Screen - holding identity is hidden for 10s!`
       break
     }
   }
@@ -380,65 +475,114 @@ export async function explodeBomb(roomId: string) {
   }
 
   // Otherwise, eliminate them:
-  await supabase.from('players').update({ is_alive: false }).eq('id', holder.id)
+  const holderBuyIn = Number(holder.powers?.buy_in ?? 1.0)
+  const holderHoldTime = Number(holder.powers?.hold_time ?? 0)
+  const holderScore = holderBuyIn * holderHoldTime
+
+  const currentHolderPowers = (holder.powers ?? {}) as Record<string, any>
+  const newHolderPowers = {
+    ...currentHolderPowers,
+    original_contribution: holderBuyIn,
+    hold_time: holderHoldTime,
+    weighted_score: holderScore,
+    bonus_earned: 0,
+    payout_amount: 0,
+    payout_tx: null
+  }
+  await supabase.from('players').update({ is_alive: false, powers: newHolderPowers }).eq('id', holder.id)
 
   // Game ends immediately on the first person to explode!
   // We calculate payouts for other players.
   const { data: allPlayers } = await supabase
     .from('players').select('*').eq('room_id', roomId)
 
-  // Compute total prize pool from all players' individual buy-ins (stored in powers.buy_in)
-  const totalPrizePool = (allPlayers ?? []).reduce((sum, p) => {
-    const pBuyIn = Number(p.powers?.buy_in ?? room.buy_in ?? 1.0)
-    return sum + pBuyIn
-  }, 0)
-
   // Find survivors (everyone except the eliminated holder)
   const survivors = (allPlayers ?? []).filter(p => p.id !== holder.id)
 
-  // Calculate weights based on: (1) points earned (holding time) and (2) buy-in contribution
-  const survivorWeights = survivors.map(s => {
-    const buyIn = Number(s.powers?.buy_in ?? room.buy_in ?? 1.0)
-    const points = Math.max(1, s.points) // Ensure points is at least 1
+  const L = holderBuyIn // Forfeited Capital
+  const totalScore = survivors.reduce((sum, p) => {
+    const pBuyIn = Number(p.powers?.buy_in ?? 1.0)
+    const pHoldTime = Number(p.powers?.hold_time ?? 0)
+    return sum + (pBuyIn * pHoldTime)
+  }, 0)
+
+  // Calculate proportional payouts
+  let sumOfPayouts = 0
+  const survivorPayouts = survivors.map(s => {
+    const Ci = Number(s.powers?.buy_in ?? 1.0)
+    const holdTime = Number(s.powers?.hold_time ?? 0)
+    const score = Ci * holdTime
+
+    let share = 0
+    if (totalScore > 0) {
+      share = score / totalScore
+    } else {
+      // Fallback: divide forfeited capital proportional to their original bets
+      const totalBets = survivors.reduce((sum, p) => sum + Number(p.powers?.buy_in ?? 1.0), 0)
+      share = totalBets > 0 ? Ci / totalBets : (1 / survivors.length)
+    }
+
+    const bonus = share * L
+    const reward = Ci + bonus
+
+    // Round to 7 decimal places for Stellar's precision
+    const rewardRounded = Math.round(reward * 10000000) / 10000000
+    sumOfPayouts += rewardRounded
+
     return {
       player: s,
-      weight: buyIn * points,
+      originalContribution: Ci,
+      holdTime,
+      weightedScore: score,
+      bonusEarned: reward - Ci,
+      reward: rewardRounded,
     }
   })
 
-  const sumWeights = survivorWeights.reduce((sum, item) => sum + item.weight, 0)
+  // Adjust the last survivor's reward to account for rounding errors
+  const totalPrizePool = L + survivors.reduce((sum, p) => sum + Number(p.powers?.buy_in ?? 1.0), 0)
+  const difference = Math.round((totalPrizePool - sumOfPayouts) * 10000000) / 10000000
+  if (difference !== 0 && survivorPayouts.length > 0) {
+    const lastIdx = survivorPayouts.length - 1
+    const finalReward = Math.round((survivorPayouts[lastIdx].reward + difference) * 10000000) / 10000000
+    survivorPayouts[lastIdx].reward = finalReward
+    survivorPayouts[lastIdx].bonusEarned = Math.round((finalReward - survivorPayouts[lastIdx].originalContribution) * 10000000) / 10000000
+  }
 
-  // Trigger payments
-  await Promise.all(
-    survivorWeights.map(async (item) => {
-      const s = item.player
-      const walletAddress = s.powers?.wallet_address
-      if (!walletAddress) {
-        console.warn(`No wallet address found for survivor ${s.nickname}`)
-        return
-      }
+  // Trigger payments sequentially to prevent Stellar sequence number collisions
+  for (const item of survivorPayouts) {
+    const s = item.player
+    const walletAddress = s.powers?.wallet_address
+    if (!walletAddress) {
+      console.warn(`No wallet address found for survivor ${s.nickname}`)
+      continue
+    }
 
-      // Calculate share: weight / sumWeights
-      const share = sumWeights > 0 ? (item.weight / sumWeights) : (1 / survivors.length)
-      const payoutAmount = totalPrizePool * share
-      const payoutStr = payoutAmount.toFixed(7)
+    const payoutStr = item.reward.toFixed(7)
 
-      // Execute payout transfer on Stellar Testnet
-      const txHash = await sendPayout(walletAddress, payoutStr)
+    // Execute payout transfer on Stellar Testnet
+    const txHash = await sendPayout(walletAddress, payoutStr)
 
-      // Store payout amount and tx hash in the player's powers metadata
-      const currentPowers = (s.powers ?? {}) as Record<string, any>
-      const newPowers = { ...currentPowers, payout_amount: payoutAmount, payout_tx: txHash }
-      await supabase.from('players').update({ powers: newPowers }).eq('id', s.id)
+    // Store payout amount and tx hash in the player's powers metadata
+    const currentPowers = (s.powers ?? {}) as Record<string, any>
+    const newPowers = {
+      ...currentPowers,
+      original_contribution: item.originalContribution,
+      hold_time: item.holdTime,
+      weighted_score: item.weightedScore,
+      bonus_earned: Math.round(item.bonusEarned * 10000000) / 10000000,
+      payout_amount: item.reward,
+      payout_tx: txHash,
+    }
+    await supabase.from('players').update({ powers: newPowers }).eq('id', s.id)
 
-      await supabase.from('events').insert({
-        room_id: roomId,
-        type: 'system',
-        nickname: s.nickname,
-        message: `💸 Paid ${payoutAmount.toFixed(2)} XLM survival payout to ${s.nickname}! (Tx: ${txHash ? txHash.slice(0, 8) + '...' : 'Failed'})`,
-      })
+    await supabase.from('events').insert({
+      room_id: roomId,
+      type: 'system',
+      nickname: s.nickname,
+      message: `💸 Paid ${item.reward.toFixed(2)} XLM survival payout to ${s.nickname}! (Tx: ${txHash ? txHash.slice(0, 8) + '...' : 'Failed'})`,
     })
-  )
+  }
 
   await supabase.from('events').insert({
     room_id: roomId,
@@ -490,16 +634,23 @@ export async function incrementHolderPoints(roomId: string, playerId: string) {
     return { success: false, error: 'Too soon' }
   }
 
-  // Get the player's current points and double points status
-  const { data: player } = await supabase.from('players').select('points, double_points_until').eq('id', playerId).single()
+  // Get the player's current points, double points status, and powers metadata
+  const { data: player } = await supabase.from('players').select('points, double_points_until, powers').eq('id', playerId).single()
   if (!player) return { error: 'Player not found' }
 
   const isDouble = player.double_points_until && new Date(player.double_points_until) > new Date()
   const pointsEarned = isDouble ? 2 : 1
 
-  // Perform concurrent updates: increment player points and refresh room's updated_at timestamp to lock the throttle
+  const currentPowers = (player.powers ?? {}) as Record<string, any>
+  const currentHoldTime = Number(currentPowers.hold_time ?? 0)
+  const newPowers = {
+    ...currentPowers,
+    hold_time: currentHoldTime + 1,
+  }
+
+  // Perform concurrent updates: increment player points, update hold_time in powers, and refresh room timestamp
   await Promise.all([
-    supabase.from('players').update({ points: player.points + pointsEarned }).eq('id', playerId),
+    supabase.from('players').update({ points: player.points + pointsEarned, powers: newPowers }).eq('id', playerId),
     supabase.from('rooms').update({ updated_at: new Date().toISOString() }).eq('id', roomId)
   ])
 

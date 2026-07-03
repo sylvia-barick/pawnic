@@ -674,6 +674,23 @@ h6 {
   animation: float-up-fade 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Custom Ball Jump Passing Animation */
+@keyframes ball-jump {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-50px) scale(1.6) rotate(180deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(360deg);
+  }
+}
+
+.animate-ball-jump {
+  animation: ball-jump 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
 /* Custom Holographic Arena floor details */
 .arena-hologram-floor {
   position: absolute;

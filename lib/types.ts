@@ -44,9 +44,9 @@ export interface GameEvent {
 
 export const POWER_CATALOG: Record<PowerType, { name: string; description: string; cost: number; emoji: string }> = {
   reverse:       { name: 'Mirror',        description: 'Reflects the next incoming POTATO back to the sender.', cost: 100, emoji: '🔮' },
-  freeze:        { name: 'Freeze',        description: 'Freezes a target player for 3 seconds so they can\'t pass or use powers.', cost: 80,  emoji: '❄️' },
+  freeze:        { name: 'Freeze',        description: 'Freezes a target player for 10 seconds so they can\'t pass or use powers.', cost: 80,  emoji: '❄️' },
   double_points: { name: 'Catnip',        description: 'Doubles your point gain for 10 seconds while holding the POTATO.', cost: 60,  emoji: '🌿' },
-  smoke_screen:  { name: 'Smoke Screen',  description: 'Hides who is holding the POTATO from other players for 4 seconds.', cost: 70,  emoji: '☁️' },
+  smoke_screen:  { name: 'Smoke Screen',  description: 'Hides who is holding the POTATO from other players for 10 seconds.', cost: 70,  emoji: '☁️' },
   nine_lives:    { name: 'Nine Lives',    description: 'Automatically saves you from one explosion once per match.', cost: 150, emoji: '🐱' },
   shield:        { name: 'Shield',        description: 'Bounce the bomb back to sender',       cost: 50,  emoji: '🛡️' },
 }

@@ -194,18 +194,18 @@ export function LobbyPanel({ room, players, myPlayer, userId }: Props) {
                   <span className="font-display font-black text-[11px] text-foreground">
                     {p.points}
                   </span>
-                  <Coins className="w-2.5 h-2.5 text-[#EAB308]" title="Ability Coins" />
+                  <span title="Ability Coins"><Coins className="w-2.5 h-2.5 text-[#EAB308]" /></span>
                 </div>
 
                 {/* Status Badges */}
                 {p.is_frozen && p.frozen_until && new Date(p.frozen_until) > new Date() && (
-                  <Snowflake className="w-2.5 h-2.5 text-[#06B6D4] shrink-0" title="Frozen" />
+                  <span title="Frozen" className="shrink-0"><Snowflake className="w-2.5 h-2.5 text-[#06B6D4]" /></span>
                 )}
                 {p.shield_active && (
-                  <Shield className="w-2.5 h-2.5 text-[#3B82F6] shrink-0" title="Shielded" />
+                  <span title="Shielded" className="shrink-0"><Shield className="w-2.5 h-2.5 text-[#3B82F6]" /></span>
                 )}
                 {!isAlive && (
-                  <Skull className="w-2.5 h-2.5 text-[#FF007F] shrink-0" title="Eliminated" />
+                  <span title="Eliminated" className="shrink-0"><Skull className="w-2.5 h-2.5 text-[#FF007F]" /></span>
                 )}
               </div>
             )

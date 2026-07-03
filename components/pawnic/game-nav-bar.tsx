@@ -15,6 +15,10 @@ interface Props {
 export function GameNavBar({ code, room, myPlayer }: Props) {
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [balance, setBalance] = useState<string>('...')
+  const [filledSegments, setFilledSegments] = useState<number>(2)
+  const [dangerText, setDangerText] = useState<string>('STABLE')
+  const [dangerColor, setDangerColor] = useState<string>('text-[#3B82F6]')
+  const [dangerBorderColor, setDangerBorderColor] = useState<string>('glass-panel glow-blue')
   const walletAddress = (myPlayer?.powers as any)?.wallet_address || ''
 
   useEffect(() => {
@@ -39,55 +43,45 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
     return () => clearInterval(interval)
   }, [walletAddress])
 
-  // Countdown timer inside header to drive the danger level
+  // Countdown timer inside header to drive the danger level and random segments
   useEffect(() => {
     if (!room?.explosion_at || room.status !== 'playing') {
       setTimeLeft(null)
+      if (room?.status === 'finished') {
+        setFilledSegments(0)
+        setDangerText('FINISHED')
+        setDangerColor('text-[#22C55E]')
+        setDangerBorderColor('glass-panel glow-green')
+      } else {
+        setFilledSegments(2)
+        setDangerText('STABLE')
+        setDangerColor('text-[#3B82F6]')
+        setDangerBorderColor('glass-panel glow-blue')
+      }
       return
     }
     const tick = () => {
       const ms = new Date(room.explosion_at!).getTime() - Date.now()
       setTimeLeft(Math.max(0, Math.floor(ms / 1000)))
+      // Randomly change segments between 1 and 10
+      setFilledSegments(Math.floor(Math.random() * 10) + 1)
+
+      // Randomly choose between STABLE (blue) and DANGER (red)
+      const isStable = Math.random() > 0.5
+      if (isStable) {
+        setDangerText('STABLE')
+        setDangerColor('text-[#3B82F6]')
+        setDangerBorderColor('glass-panel glow-blue')
+      } else {
+        setDangerText('DANGER')
+        setDangerColor('text-[#FF007F] animate-pulse')
+        setDangerBorderColor('glass-panel glow-red animate-pulse')
+      }
     }
     tick()
     const id = setInterval(tick, 250)
     return () => clearInterval(id)
   }, [room?.explosion_at, room?.status])
-
-  // Compute Danger Level and segment counts based on seconds remaining
-  let dangerText = 'STABLE'
-  let dangerColor = 'text-[#3B82F6]' // soft cyan-blue
-  let filledSegments = 2
-  let dangerBorderColor = 'glass-panel glow-blue'
-
-  if (room.status === 'playing' && timeLeft !== null) {
-    if (timeLeft > 60) {
-      dangerText = 'STABLE'
-      dangerColor = 'text-[#3B82F6]'
-      filledSegments = 3
-      dangerBorderColor = 'glass-panel glow-blue'
-    } else if (timeLeft > 30) {
-      dangerText = 'NERVOUS'
-      dangerColor = 'text-[#FFE234]'
-      filledSegments = 5
-      dangerBorderColor = 'glass-panel glow-yellow'
-    } else if (timeLeft > 10) {
-      dangerText = 'UNSTABLE'
-      dangerColor = 'text-[#FF5F1F] animate-pulse'
-      filledSegments = 8
-      dangerBorderColor = 'glass-panel glow-orange animate-pulse'
-    } else {
-      dangerText = 'NUCLEAR'
-      dangerColor = 'text-[#FF007F] animate-pulse'
-      filledSegments = 10
-      dangerBorderColor = 'glass-panel glow-red animate-pulse'
-    }
-  } else if (room.status === 'finished') {
-    dangerText = 'FINISHED'
-    dangerColor = 'text-[#22C55E]'
-    filledSegments = 0
-    dangerBorderColor = 'glass-panel glow-green'
-  }
 
   return (
     <header className="fixed top-2 left-0 right-0 z-50 flex gap-2 px-2 pointer-events-none select-none h-14">
@@ -125,24 +119,23 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
                   style={
                     isFilled
                       ? {
-                          backgroundColor:
-                            dangerText === 'NUCLEAR' || dangerText === 'RABID'
-                              ? '#FF007F'
-                              : dangerText === 'ANGRY' || dangerText === 'UNSTABLE'
+                        backgroundColor:
+                          dangerText === 'NUCLEAR' || dangerText === 'RABID' || dangerText === 'DANGER'
+                            ? '#FF007F'
+                            : dangerText === 'ANGRY' || dangerText === 'UNSTABLE'
                               ? '#FF5F1F'
                               : dangerText === 'NERVOUS'
-                              ? '#FFE234'
-                              : '#3B82F6',
-                          boxShadow: `0 0 8px ${
-                            dangerText === 'NUCLEAR' || dangerText === 'RABID'
-                              ? '#FF007F'
-                              : dangerText === 'ANGRY' || dangerText === 'UNSTABLE'
+                                ? '#FFE234'
+                                : '#3B82F6',
+                        boxShadow: `0 0 8px ${dangerText === 'NUCLEAR' || dangerText === 'RABID' || dangerText === 'DANGER'
+                            ? '#FF007F'
+                            : dangerText === 'ANGRY' || dangerText === 'UNSTABLE'
                               ? '#FF5F1F'
                               : dangerText === 'NERVOUS'
-                              ? '#FFE234'
-                              : '#3B82F6'
+                                ? '#FFE234'
+                                : '#3B82F6'
                           }`,
-                        }
+                      }
                       : undefined
                   }
                 />
@@ -151,7 +144,7 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
           </div>
         </div>
         <div className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full border-2 border-black bg-black/40 shadow-[1.5px_1.5px_0px_0px_#000000] ${dangerColor}`}>
-          {dangerText === 'NUCLEAR' ? (
+          {dangerText === 'NUCLEAR' || dangerText === 'DANGER' ? (
             <Flame className="w-4 h-4 text-[#FF007F] animate-pulse" />
           ) : dangerText === 'UNSTABLE' || dangerText === 'ANGRY' ? (
             <Zap className="w-4 h-4 text-[#FF5F1F]" />
