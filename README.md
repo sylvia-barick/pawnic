@@ -41,9 +41,9 @@ Earn points by holding the cat. Spend them on powers mid-match.
 | Power | Cost | Effect |
 |:---|:---:|:---|
 | 🔮 Mirror | 100 pts | Reflects the next incoming pass back to sender |
-| ❄️ Freeze | 80 pts | Locks a target player for 3 seconds |
+| ❄️ Freeze | 80 pts | Locks a target player for 10 seconds |
 | 🌿 Catnip | 60 pts | Doubles your point gain for 10 seconds |
-| ☁️ Smoke Screen | 70 pts | Hides the bomb holder from others for 4 seconds |
+| ☁️ Smoke Screen | 70 pts | Hides the bomb holder from others for 10 seconds |
 | 🐱 Nine Lives | 150 pts | Auto-saves you from one explosion |
 | 🛡️ Shield | 50 pts | Bounces the bomb back to whoever passed it to you |
 
