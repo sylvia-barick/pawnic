@@ -1,5 +1,6 @@
 <p align="center">
-  <img width="200" height="200" src="https://github.com/user-attachments/assets/3f56c753-c9e2-4bd9-b797-41c5df2aa8cb" />
+  <img width="200" height="200" alt="SWIFT (17)" src="https://github.com/user-attachments/assets/eba4075a-7445-477e-a9a7-2196a6506d37" />
+
 </p>
 
 <h1 align="center">PAWnic</h1>
