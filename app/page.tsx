@@ -11,7 +11,8 @@ import { PawLogo } from '@/components/pawnic/paw-logo'
 import { StellarWalletsKit } from "@creit-tech/stellar-wallets-kit/sdk"
 import { defaultModules } from '@creit-tech/stellar-wallets-kit/modules/utils'
 import { SwkAppDarkTheme } from "@creit-tech/stellar-wallets-kit/types"
-import { Horizon, TransactionBuilder, Networks, Asset, Operation } from '@stellar/stellar-sdk'
+import { Horizon, TransactionBuilder, Asset, Operation } from '@stellar/stellar-sdk'
+import { HORIZON_URL, NETWORK_PASSPHRASE } from '@/lib/stellar-config'
 
 const ADJECTIVES = ['Sneaky', 'Fluffy', 'Grumpy', 'Speedy', 'Tiny', 'Jumpy', 'Dizzy', 'Fuzzy', 'Wacky', 'Sly']
 const NOUNS = ['Paw', 'Claw', 'Purr', 'Meow', 'Hiss', 'Nip', 'Flop', 'Zap', 'Bop', 'Yowl']
@@ -59,7 +60,7 @@ export default function LandingPage() {
         .then(({ address }) => {
           if (address) {
             setWalletAddress(address)
-            const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+            const server = new Horizon.Server(HORIZON_URL)
             server.loadAccount(address).then(account => {
               const native = account.balances.find(b => b.asset_type === 'native')
               setWalletBalance(native ? Number(native.balance).toFixed(2) : '0.00')
@@ -82,7 +83,7 @@ export default function LandingPage() {
       }
       setWalletAddress(address)
 
-      const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+      const server = new Horizon.Server(HORIZON_URL)
       const account = await server.loadAccount(address)
       const native = account.balances.find(b => b.asset_type === 'native')
       setWalletBalance(native ? Number(native.balance).toFixed(2) : '0.00')
@@ -100,12 +101,12 @@ export default function LandingPage() {
       throw new Error('Vault address not configured on the server.')
     }
 
-    const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+    const server = new Horizon.Server(HORIZON_URL)
     const sourceAccount = await server.loadAccount(senderAddress)
 
     const tx = new TransactionBuilder(sourceAccount, {
       fee: '1000', // safe base fee (1000 stroops = 0.0001 XLM)
-      networkPassphrase: Networks.TESTNET,
+      networkPassphrase: NETWORK_PASSPHRASE,
     })
       .addOperation(
         Operation.payment({
@@ -118,13 +119,13 @@ export default function LandingPage() {
       .build()
 
     const signResult = await StellarWalletsKit.signTransaction(tx.toXDR(), {
-      networkPassphrase: Networks.TESTNET,
+      networkPassphrase: NETWORK_PASSPHRASE,
       address: senderAddress,
     })
     if (!signResult || !signResult.signedTxXdr) {
       throw new Error('Transaction signing rejected or failed.')
     }
-    const txEnvelope = TransactionBuilder.fromXDR(signResult.signedTxXdr, Networks.TESTNET)
+    const txEnvelope = TransactionBuilder.fromXDR(signResult.signedTxXdr, NETWORK_PASSPHRASE)
     const result = await server.submitTransaction(txEnvelope)
     return result.hash
   }

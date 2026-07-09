@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { Room, Player } from '@/lib/types'
 import { Horizon } from '@stellar/stellar-sdk'
+import { HORIZON_URL } from '@/lib/stellar-config'
 import { Wallet, Copy, Menu, Flame, Zap, ShieldAlert, ShieldCheck, CheckCircle, CircleX } from 'lucide-react'
 
 interface Props {
@@ -26,7 +27,7 @@ export function GameNavBar({ code, room, myPlayer }: Props) {
       setBalance('0.00')
       return
     }
-    const server = new Horizon.Server('https://horizon-testnet.stellar.org')
+    const server = new Horizon.Server(HORIZON_URL)
     const fetchBalance = () => {
       server.loadAccount(walletAddress)
         .then(account => {

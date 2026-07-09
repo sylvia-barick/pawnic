@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import type { Room, Player } from '@/lib/types'
+import { getExplorerTxUrl } from '@/lib/stellar-config'
 
 interface Props {
   room: Room | null
@@ -196,7 +197,7 @@ export function FinishedOverlay({ room, players, myPlayer }: Props) {
                       <div className="flex justify-between items-center text-[8px] mt-1 border-t border-black/30 pt-1">
                         <span className="text-slate-400">Tx Hash:</span>
                         <a
-                          href={`https://stellar.expert/explorer/testnet/tx/${payoutTx}`}
+                          href={getExplorerTxUrl(payoutTx)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#A855F7] hover:text-[#C084FC] underline font-bold"

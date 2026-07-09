@@ -1,6 +1,6 @@
-import { Horizon, Keypair, TransactionBuilder, Networks, Asset, Operation } from '@stellar/stellar-sdk'
+import { Horizon, Keypair, TransactionBuilder, Asset, Operation } from '@stellar/stellar-sdk'
+import { HORIZON_URL, NETWORK_PASSPHRASE, STELLAR_NETWORK } from './stellar-config'
 
-const HORIZON_URL = 'https://horizon-testnet.stellar.org'
 const server = new Horizon.Server(HORIZON_URL)
 
 /**
@@ -54,6 +54,9 @@ export async function verifyBuyInTransaction(
  * Automatically fetch Friendbot to fund the vault address if its balance falls below 100 XLM.
  */
 export async function fundVaultIfLow(): Promise<void> {
+  if (STELLAR_NETWORK === 'public') {
+    return
+  }
   const vaultAddress = process.env.NEXT_PUBLIC_STELLAR_VAULT_PUBLIC_KEY
   if (!vaultAddress) return
 
@@ -105,7 +108,7 @@ export async function sendPayout(targetAddress: string, amount: string): Promise
     // 3. Construct transaction
     const tx = new TransactionBuilder(sourceAccount, {
       fee: fee.toString(),
-      networkPassphrase: Networks.TESTNET,
+      networkPassphrase: NETWORK_PASSPHRASE,
     })
       .addOperation(
         Operation.payment({
