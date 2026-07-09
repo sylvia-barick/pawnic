@@ -46,6 +46,12 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
   const [errorMsg, setErrorMsg] = useState('')
   const eventsEndRef = useRef<HTMLDivElement>(null)
   const lastExplodeEventRef = useRef<string | null>(null)
+  // Tick every 250ms to keep time-based ability countdowns live
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 250)
+    return () => clearInterval(id)
+  }, [])
 
   const [copied, setCopied] = useState(false)
   const handleCopyCode = () => {
@@ -622,6 +628,55 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
           </div>
         )}
       </div>
+
+      {/* Active Effects Bar — live countdown badges for all active ability states */}
+      {room?.status === 'playing' && myPlayer && (() => {
+        const now = Date.now()
+        const frozenSec = myPlayer.is_frozen && myPlayer.frozen_until
+          ? Math.max(0, Math.ceil((new Date(myPlayer.frozen_until).getTime() - now) / 1000))
+          : 0
+        const catnipSec = myPlayer.double_points_until
+          ? Math.max(0, Math.ceil((new Date(myPlayer.double_points_until).getTime() - now) / 1000))
+          : 0
+        const myPowersMap = (myPlayer.powers ?? {}) as Record<string, any>
+        const smokeSec = myPowersMap.smoke_screen_until
+          ? Math.max(0, Math.ceil((new Date(myPowersMap.smoke_screen_until).getTime() - now) / 1000))
+          : 0
+
+        const effects = [
+          frozenSec > 0   && { label: `Frozen`, timer: frozenSec,  emoji: '❄️',  color: '#06B6D4', bg: 'rgba(6,182,212,0.12)',  border: 'rgba(6,182,212,0.35)' },
+          catnipSec > 0   && { label: `Catnip`, timer: catnipSec,  emoji: '🌿',  color: '#22C55E', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.35)' },
+          smokeSec > 0    && { label: `Smoke`,  timer: smokeSec,   emoji: '☁️',  color: '#94A3B8', bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.35)' },
+          myPlayer.shield_active  && { label: 'Shield',  timer: null, emoji: '🛡️', color: '#EAB308', bg: 'rgba(234,179,8,0.12)',   border: 'rgba(234,179,8,0.35)' },
+          myPlayer.reverse_active && { label: 'Mirror',  timer: null, emoji: '🔮', color: '#A855F7', bg: 'rgba(168,85,247,0.12)',  border: 'rgba(168,85,247,0.35)' },
+        ].filter(Boolean) as { label: string; timer: number | null; emoji: string; color: string; bg: string; border: string }[]
+
+        if (effects.length === 0) return null
+        return (
+          <div className="flex flex-wrap gap-2 px-1 shrink-0">
+            {effects.map(fx => (
+              <div
+                key={fx.label}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-display font-black uppercase tracking-wider border"
+                style={{ background: fx.bg, borderColor: fx.border, color: fx.color, boxShadow: `0 0 8px ${fx.border}` }}
+              >
+                <span>{fx.emoji}</span>
+                <span>{fx.label}</span>
+                {fx.timer !== null && (
+                  <span
+                    className="font-mono font-black"
+                    style={{ color: fx.timer <= 3 ? '#FF007F' : fx.color }}
+                  >
+                    {fx.timer}s
+                  </span>
+                )}
+                {fx.label === 'Shield' && <span className="text-[8px] opacity-60">ACTIVE</span>}
+                {fx.label === 'Mirror' && <span className="text-[8px] opacity-60">READY</span>}
+              </div>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Target selector popup for Freezing ability */}
       {selectingFreeze && (

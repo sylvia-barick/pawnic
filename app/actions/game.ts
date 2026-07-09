@@ -304,14 +304,20 @@ export async function buyAndUsePower(userId: string, roomId: string, powerType: 
 
     case 'freeze': {
       if (!targetPlayerId) return { error: 'Freeze requires a target' }
+      if (targetPlayerId === player.id) return { error: 'You cannot freeze yourself!' }
+      // Fetch target to validate before freezing
+      const { data: freezeTarget } = await supabase.from('players').select('nickname, is_alive, is_frozen, frozen_until').eq('id', targetPlayerId).single()
+      if (!freezeTarget) return { error: 'Target player not found' }
+      if (!freezeTarget.is_alive) return { error: `${freezeTarget.nickname} is already eliminated!` }
+      if (freezeTarget.is_frozen && freezeTarget.frozen_until && new Date(freezeTarget.frozen_until) > new Date())
+        return { error: `${freezeTarget.nickname} is already frozen!` }
       const frozenUntil = new Date(Date.now() + 10000).toISOString()
-      const { data: t } = await supabase.from('players').select('nickname').eq('id', targetPlayerId).single()
       // Freeze target + deduct buyer points in parallel
       await Promise.all([
         supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId),
         supabase.from('players').update({ points: player.points - power.cost }).eq('id', player.id),
       ])
-      eventMsg = `${player.nickname} froze ${t?.nickname ?? 'a player'} for 10s!`
+      eventMsg = `${player.nickname} froze ${freezeTarget.nickname} for 10s!`
       // Points already updated, skip second update below
       await supabase.from('events').insert({
         room_id: roomId, type: 'power', nickname: player.nickname, message: eventMsg,
@@ -383,11 +389,21 @@ export async function usePower(userId: string, roomId: string, powerType: PowerT
 
     case 'freeze': {
       if (!targetPlayerId) return { error: 'Freeze requires a target' }
-      const frozenUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
-      await supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId)
-      const { data: t } = await supabase.from('players').select('nickname').eq('id', targetPlayerId).single()
-      eventMsg = `${player.nickname} froze ${t?.nickname ?? 'a player'} for 10s!`
-      break
+      if (targetPlayerId === player.id) return { error: 'You cannot freeze yourself!' }
+      const { data: freezeTarget2 } = await supabase.from('players').select('nickname, is_alive, is_frozen, frozen_until').eq('id', targetPlayerId).single()
+      if (!freezeTarget2) return { error: 'Target player not found' }
+      if (!freezeTarget2.is_alive) return { error: `${freezeTarget2.nickname} is already eliminated!` }
+      if (freezeTarget2.is_frozen && freezeTarget2.frozen_until && new Date(freezeTarget2.frozen_until) > new Date())
+        return { error: `${freezeTarget2.nickname} is already frozen!` }
+      const frozenUntil = new Date(Date.now() + 10000).toISOString()
+      // Freeze target + update caster powers in parallel — nickname already fetched
+      await Promise.all([
+        supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId),
+        supabase.from('players').update({ powers: newPowers }).eq('id', player.id),
+      ])
+      eventMsg = `${player.nickname} froze ${freezeTarget2.nickname} for 10s!`
+      await supabase.from('events').insert({ room_id: roomId, type: 'power', nickname: player.nickname, message: eventMsg })
+      return { success: true }
     }
 
     case 'double_points':
