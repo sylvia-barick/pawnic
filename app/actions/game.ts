@@ -5,7 +5,13 @@ import { PowerType, POWER_CATALOG } from '@/lib/types'
 import { verifyBuyInTransaction, sendPayout } from '@/lib/stellar'
 
 function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase()
+  // Use unambiguous capital letters and numbers (excludes I, O, L, 0, 1)
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 6; i++) {
+    code += alphabet.charAt(Math.floor(Math.random() * alphabet.length))
+  }
+  return code
 }
 
 function getRandomExplosionSeconds(): number {
