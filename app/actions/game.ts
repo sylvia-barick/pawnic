@@ -185,45 +185,48 @@ export async function passBomb(userId: string, roomId: string, targetPlayerId: s
   // Reverse power: bomb bounces back
   if (target.reverse_active) {
     reflected = true
-    // 1. Temporarily set holder to target (B) so client pass animation runs
+    // 1. Temporarily set holder to target so client animation runs
     await supabase.from('rooms').update({ bomb_holder_id: targetPlayerId }).eq('id', roomId)
-    // 2. Pause to let the ball arrive
-    await new Promise(resolve => setTimeout(resolve, 600))
-    // 3. Bounce back to sender (A)
+    // 2. Short pause for animation, then bounce back
+    await new Promise(resolve => setTimeout(resolve, 250))
     actualTargetId = myPlayer.id
-    await supabase.from('players').update({ reverse_active: false }).eq('id', targetPlayerId)
-    await supabase.from('events').insert({
-      room_id: roomId, type: 'power', nickname: target.nickname,
-      message: `${target.nickname} reversed the POTATO back to ${myPlayer.nickname}!`,
-    })
+    await Promise.all([
+      supabase.from('players').update({ reverse_active: false }).eq('id', targetPlayerId),
+      supabase.from('events').insert({
+        room_id: roomId, type: 'power', nickname: target.nickname,
+        message: `${target.nickname} reversed the POTATO back to ${myPlayer.nickname}!`,
+      }),
+    ])
   } else if (target.shield_active) {
     reflected = true
-    // 1. Temporarily set holder to target (B) so client pass animation runs
+    // 1. Temporarily set holder to target so client animation runs
     await supabase.from('rooms').update({ bomb_holder_id: targetPlayerId }).eq('id', roomId)
-    // 2. Pause to let the ball arrive
-    await new Promise(resolve => setTimeout(resolve, 600))
-    // 3. Bounce back to sender (A)
+    // 2. Short pause for animation, then bounce back
+    await new Promise(resolve => setTimeout(resolve, 250))
     actualTargetId = myPlayer.id
-    await supabase.from('players').update({ shield_active: false }).eq('id', targetPlayerId)
-    await supabase.from('events').insert({
-      room_id: roomId, type: 'power', nickname: target.nickname,
-      message: `${target.nickname}'s shield deflected the POTATO back!`,
-    })
+    await Promise.all([
+      supabase.from('players').update({ shield_active: false }).eq('id', targetPlayerId),
+      supabase.from('events').insert({
+        room_id: roomId, type: 'power', nickname: target.nickname,
+        message: `${target.nickname}'s shield deflected the POTATO back!`,
+      }),
+    ])
   }
 
-  // Award points (double if active)
+  // Award points (double if active) + move bomb + log event all in parallel
   const isDouble = myPlayer.double_points_until && new Date(myPlayer.double_points_until) > new Date()
   const pointsEarned = isDouble ? 2 : 1
-  await supabase.from('players').update({ points: myPlayer.points + pointsEarned }).eq('id', myPlayer.id)
 
-  await supabase.from('rooms').update({ bomb_holder_id: actualTargetId }).eq('id', roomId)
-
-  await supabase.from('events').insert({
-    room_id: roomId, type: 'pass', nickname: myPlayer.nickname,
-    message: reflected
-      ? `${myPlayer.nickname} tried to pass the POTATO to ${target.nickname}, but it was bounced back!`
-      : `${myPlayer.nickname} passed the POTATO to ${target.nickname}${isDouble ? ' (+2pts!)' : ''}`,
-  })
+  await Promise.all([
+    supabase.from('players').update({ points: myPlayer.points + pointsEarned }).eq('id', myPlayer.id),
+    supabase.from('rooms').update({ bomb_holder_id: actualTargetId }).eq('id', roomId),
+    supabase.from('events').insert({
+      room_id: roomId, type: 'pass', nickname: myPlayer.nickname,
+      message: reflected
+        ? `${myPlayer.nickname} tried to pass the POTATO to ${target.nickname}, but it was bounced back!`
+        : `${myPlayer.nickname} passed the POTATO to ${target.nickname}${isDouble ? ' (+2pts!)' : ''}`,
+    }),
+  ])
 
   return { success: true }
 }
@@ -301,15 +304,23 @@ export async function buyAndUsePower(userId: string, roomId: string, powerType: 
 
     case 'freeze': {
       if (!targetPlayerId) return { error: 'Freeze requires a target' }
-      const frozenUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
-      await supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId)
+      const frozenUntil = new Date(Date.now() + 10000).toISOString()
       const { data: t } = await supabase.from('players').select('nickname').eq('id', targetPlayerId).single()
+      // Freeze target + deduct buyer points in parallel
+      await Promise.all([
+        supabase.from('players').update({ is_frozen: true, frozen_until: frozenUntil }).eq('id', targetPlayerId),
+        supabase.from('players').update({ points: player.points - power.cost }).eq('id', player.id),
+      ])
       eventMsg = `${player.nickname} froze ${t?.nickname ?? 'a player'} for 10s!`
-      break
+      // Points already updated, skip second update below
+      await supabase.from('events').insert({
+        room_id: roomId, type: 'power', nickname: player.nickname, message: eventMsg,
+      })
+      return { success: true }
     }
 
     case 'double_points':
-      updatePlayer.double_points_until = new Date(Date.now() + 10000).toISOString() // 10 seconds!
+      updatePlayer.double_points_until = new Date(Date.now() + 10000).toISOString()
       eventMsg = `${player.nickname} activated Catnip - 2x score for 10s!`
       break
 
@@ -319,7 +330,7 @@ export async function buyAndUsePower(userId: string, roomId: string, powerType: 
       break
 
     case 'smoke_screen': {
-      const smokeUntil = new Date(Date.now() + 10000).toISOString() // 10 seconds!
+      const smokeUntil = new Date(Date.now() + 10000).toISOString()
       const currentPowers = (player.powers ?? {}) as Record<string, any>
       const powersWithStatus = { ...currentPowers, smoke_screen_until: smokeUntil }
       updatePlayer.powers = powersWithStatus
@@ -328,12 +339,13 @@ export async function buyAndUsePower(userId: string, roomId: string, powerType: 
     }
   }
 
-  const { error } = await supabase.from('players').update(updatePlayer).eq('id', player.id)
-  if (error) return { error: error.message }
-
-  await supabase.from('events').insert({
-    room_id: roomId, type: 'power', nickname: player.nickname, message: eventMsg,
-  })
+  // Player update + event insert in parallel
+  await Promise.all([
+    supabase.from('players').update(updatePlayer).eq('id', player.id),
+    supabase.from('events').insert({
+      room_id: roomId, type: 'power', nickname: player.nickname, message: eventMsg,
+    }),
+  ])
 
   return { success: true }
 }

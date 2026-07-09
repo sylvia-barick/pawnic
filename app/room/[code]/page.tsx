@@ -1,5 +1,8 @@
 'use client'
 
+// Pin server actions to Mumbai (bom1) — matches Supabase ap-south-1
+export const preferredRegion = 'bom1'
+
 import { use } from 'react'
 import { useRoom } from '@/hooks/use-room'
 import { GameNavBar } from '@/components/pawnic/game-nav-bar'
@@ -79,6 +82,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
             userId={gameState.userId}
             reactions={gameState.reactions}
             sendReaction={gameState.sendReaction}
+            optimisticBombHolder={gameState.optimisticBombHolder}
+            setOptimisticBombHolder={gameState.setOptimisticBombHolder}
           />
         </div>
 

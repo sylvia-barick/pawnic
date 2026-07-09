@@ -14,6 +14,8 @@ interface Props {
   userId: string
   reactions: { id: string; playerId: string; emoji: string; xOffset: number }[]
   sendReaction: (emoji: string) => void
+  optimisticBombHolder: string | null | undefined
+  setOptimisticBombHolder: (id: string | null | undefined) => void
 }
 
 const abilityColors: Record<PowerType, { bg: string; border: string; text: string }> = {
@@ -34,7 +36,7 @@ const abilityShortnames: Record<PowerType, string> = {
   shield: 'SHLD',
 }
 
-export function ArenaPanel({ room, players, events, myPlayer, userId, reactions, sendReaction }: Props) {
+export function ArenaPanel({ room, players, events, myPlayer, userId, reactions, sendReaction, optimisticBombHolder, setOptimisticBombHolder }: Props) {
   const [chatInput, setChatInput] = useState('')
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
   const [showExplosion, setShowExplosion] = useState(false)
@@ -206,9 +208,17 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
   function handlePass(targetId: string) {
     if (!room || !myPlayer) return
     setPassError('')
+    // Optimistic UI: immediately move the ball before server confirms
+    const previousHolder = room.bomb_holder_id
+    setOptimisticBombHolder(targetId)
     startTransition(async () => {
       const res = await passBomb(userId, room.id, targetId)
-      if (res.error) setPassError(res.error)
+      if (res.error) {
+        // Revert optimistic update on error
+        setOptimisticBombHolder(previousHolder)
+        setPassError(res.error)
+      }
+      // On success, realtime will clear optimisticBombHolder automatically
     })
   }
 
@@ -251,18 +261,23 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
   const alivePlayers = players.filter(p => p.is_alive)
 
-  // Hides who is holding the POTATO from other players for 4 seconds if Smoke Screen is active
+  // Hides who is holding the POTATO from other players if Smoke Screen is active
   const isSmokeScreenActive = players.some(p => {
     const pPowers = (p.powers ?? {}) as Record<string, any>
     const until = pPowers.smoke_screen_until
     return until && new Date(until) > new Date()
   })
 
-  const bombHolder = players.find(p => p.id === room?.bomb_holder_id)
+  // Effective bomb holder: use optimistic state immediately, fall back to server state
+  const effectiveBombHolderId = optimisticBombHolder !== undefined
+    ? optimisticBombHolder
+    : room?.bomb_holder_id
+
+  const bombHolder = players.find(p => p.id === effectiveBombHolderId)
   const isMeHolding = bombHolder?.user_id === userId
   const shouldHideHolder = isSmokeScreenActive
 
-  const iHaveBomb = room?.bomb_holder_id === myPlayer?.id
+  const iHaveBomb = effectiveBombHolderId === myPlayer?.id
   const isFrozen = !!(myPlayer?.is_frozen && myPlayer.frozen_until && new Date(myPlayer.frozen_until) > new Date())
 
   // Ability slots config mapped to the mockup descriptions & actions
@@ -282,8 +297,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
   let ballY = 150
   let showBall = false
 
-  if (room?.status === 'playing' && room.bomb_holder_id && !shouldHideHolder) {
-    const holderIdx = alivePlayers.findIndex(p => p.id === room.bomb_holder_id)
+  if (room?.status === 'playing' && effectiveBombHolderId && !shouldHideHolder) {
+    const holderIdx = alivePlayers.findIndex(p => p.id === effectiveBombHolderId)
     if (holderIdx !== -1) {
       const angle = angleStep * holderIdx - Math.PI / 2
       const r = alivePlayers.length <= 3 ? 95 : 115
@@ -452,7 +467,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
                 const r = alivePlayers.length <= 3 ? 95 : 115
-                const hasBomb = p.id === room?.bomb_holder_id
+                const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 return (
                   <div
@@ -511,7 +526,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 const r = alivePlayers.length <= 3 ? 95 : 115
                 const x = Math.cos(angle) * r + 150 - 34
                 const y = Math.sin(angle) * r + 150 - 34
-                const hasBomb = p.id === room?.bomb_holder_id
+                const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 const isMe = p.user_id === userId
                 const canPass = iHaveBomb && !isMe && !isFrozen && !isPending

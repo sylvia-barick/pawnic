@@ -1,5 +1,8 @@
 'use client'
 
+// Pin server actions to Mumbai (bom1) — matches Supabase ap-south-1
+export const preferredRegion = 'bom1'
+
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createRoom, joinRoom, getRoomBuyIn } from '@/app/actions/game'

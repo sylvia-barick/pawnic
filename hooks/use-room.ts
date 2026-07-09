@@ -23,6 +23,8 @@ export function useRoom(code: string) {
   const [userId, setUserId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Optimistic bomb holder — updated immediately on pass click, server confirms via realtime
+  const [optimisticBombHolder, setOptimisticBombHolder] = useState<string | null | undefined>(undefined)
   const explodingRef = useRef(false)
   const roomIdRef = useRef<string | null>(null)
 
@@ -96,23 +98,39 @@ export function useRoom(code: string) {
 
     channel.on('postgres_changes', {
       event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}`,
+    // When the room updates via realtime, clear the optimistic override
+    // (the server truth is now authoritative)
     }, (payload) => {
       if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
         setRoom(payload.new as Room)
+        setOptimisticBombHolder(undefined) // server confirmed — clear optimistic state
       }
     })
 
+    // Apply player updates directly from payload — no extra DB roundtrip
     channel.on('postgres_changes', {
-      event: '*', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}`,
-    }, async () => {
-      const { data } = await supabase
-        .from('players').select('*').eq('room_id', roomId).order('joined_at')
-      if (data) {
-        setPlayers(data)
-        const uid = getOrCreateUserId()
-        const me = data.find(p => p.user_id === uid) ?? null
-        setMyPlayer(me)
-      }
+      event: 'UPDATE', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}`,
+    }, (payload) => {
+      const updated = payload.new as Player
+      setPlayers(prev => prev.map(p => p.id === updated.id ? updated : p))
+      const uid = getOrCreateUserId()
+      if (updated.user_id === uid) setMyPlayer(updated)
+    })
+
+    channel.on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}`,
+    }, (payload) => {
+      const newPlayer = payload.new as Player
+      setPlayers(prev => {
+        if (prev.find(p => p.id === newPlayer.id)) return prev
+        return [...prev, newPlayer]
+      })
+    })
+
+    channel.on('postgres_changes', {
+      event: 'DELETE', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}`,
+    }, (payload) => {
+      setPlayers(prev => prev.filter(p => p.id !== payload.old.id))
     })
 
     channel.on('postgres_changes', {
@@ -157,9 +175,11 @@ export function useRoom(code: string) {
     return () => clearInterval(interval)
   }, [room?.explosion_at, room?.status, room?.id])
 
-  // Points accumulation timer — any active visible client drives this
+  // Points accumulation timer — ONLY the bomb holder drives this to prevent server spam
   useEffect(() => {
     if (!room || room.status !== 'playing' || !room.bomb_holder_id) return
+    // Only the client who IS the holder should tick — not all 8 players
+    if (!myPlayer || myPlayer.id !== room.bomb_holder_id) return
 
     const roomId = room.id
     const holderId = room.bomb_holder_id
@@ -170,7 +190,7 @@ export function useRoom(code: string) {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [room?.status, room?.bomb_holder_id, room?.id])
+  }, [room?.status, room?.bomb_holder_id, room?.id, myPlayer?.id])
 
   return {
     room,
@@ -182,6 +202,9 @@ export function useRoom(code: string) {
     error,
     reactions,
     sendReaction,
+    // Expose the effective bomb holder ID (optimistic takes priority until server confirms)
+    optimisticBombHolder,
+    setOptimisticBombHolder,
     refetch: () => fetchAll(getOrCreateUserId()),
   }
 }

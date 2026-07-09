@@ -38,6 +38,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${spaceGrotesk.variable} ${geistMono.variable} ${fredoka.variable} bg-background`}
+      suppressHydrationWarning
     >
       <body className="antialiased">
         {children}
