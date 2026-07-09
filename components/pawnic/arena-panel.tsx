@@ -307,9 +307,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
     const holderIdx = alivePlayers.findIndex(p => p.id === effectiveBombHolderId)
     if (holderIdx !== -1) {
       const angle = angleStep * holderIdx - Math.PI / 2
-      const r = alivePlayers.length <= 3 ? 125 : 148
-      const px = Math.cos(angle) * r + 180 - 34
-      const py = Math.sin(angle) * r + 180 - 34
+      const r = alivePlayers.length <= 3 ? 108 : 128
+      const px = Math.cos(angle) * r + 150 - 34
+      const py = Math.sin(angle) * r + 150 - 34
       ballX = px + 54
       ballY = py - 4
       showBall = true
@@ -455,9 +455,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         )}
 
         {room?.status === 'playing' && (
-          <div className="flex-1 w-full relative flex items-center justify-center min-h-0 select-none">
-            {/* Circular active players loop wrapper — 360×360 for tighter, more intense feel */}
-            <div className="relative" style={{ width: 360, height: 360 }}>
+          <div className="flex-1 w-full relative flex items-center justify-center min-h-0 select-none overflow-hidden">
+            {/* Circular active players loop wrapper */}
+            <div className="relative" style={{ width: 300, height: 300 }}>
 
               {/* Central Holographic Arena floor details */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -471,7 +471,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Laser wires connecting players to center */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
-                const r = alivePlayers.length <= 3 ? 125 : 148
+                const r = alivePlayers.length <= 3 ? 108 : 128
                 const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 return (
@@ -480,8 +480,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     className={`arena-laser-line ${showBombVisual ? 'active' : ''}`}
                     style={{
                       width: r,
-                      left: 180,
-                      top: 180,
+                      left: 150,
+                      top: 150,
                       transform: `rotate(${angle}rad)`,
                       opacity: showBombVisual ? 0.65 : 0.2,
                     }}
@@ -528,9 +528,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Loop layout of players around the cat */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
-                const r = alivePlayers.length <= 3 ? 125 : 148
-                const x = Math.cos(angle) * r + 180 - 34
-                const y = Math.sin(angle) * r + 180 - 34
+                const r = alivePlayers.length <= 3 ? 108 : 128
+                const x = Math.cos(angle) * r + 150 - 34
+                const y = Math.sin(angle) * r + 150 - 34
                 const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 const isMe = p.user_id === userId
