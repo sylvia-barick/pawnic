@@ -307,10 +307,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
     const holderIdx = alivePlayers.findIndex(p => p.id === effectiveBombHolderId)
     if (holderIdx !== -1) {
       const angle = angleStep * holderIdx - Math.PI / 2
-      const r = alivePlayers.length <= 3 ? 95 : 115
-      const px = Math.cos(angle) * r + 150 - 34
-      const py = Math.sin(angle) * r + 150 - 34
-      // Position on the right upside of the cat (top-right of 64x64 avatar button inside 68x68 wrapper)
+      const r = alivePlayers.length <= 3 ? 125 : 148
+      const px = Math.cos(angle) * r + 180 - 34
+      const py = Math.sin(angle) * r + 180 - 34
       ballX = px + 54
       ballY = py - 4
       showBall = true
@@ -457,8 +456,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
         {room?.status === 'playing' && (
           <div className="flex-1 w-full relative flex items-center justify-center min-h-0 select-none">
-            {/* Circular active players loop wrapper */}
-            <div className="relative" style={{ width: 300, height: 300 }}>
+            {/* Circular active players loop wrapper — 360×360 for tighter, more intense feel */}
+            <div className="relative" style={{ width: 360, height: 360 }}>
 
               {/* Central Holographic Arena floor details */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -472,7 +471,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Laser wires connecting players to center */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
-                const r = alivePlayers.length <= 3 ? 95 : 115
+                const r = alivePlayers.length <= 3 ? 125 : 148
                 const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 return (
@@ -481,8 +480,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     className={`arena-laser-line ${showBombVisual ? 'active' : ''}`}
                     style={{
                       width: r,
-                      left: 150,
-                      top: 150,
+                      left: 180,
+                      top: 180,
                       transform: `rotate(${angle}rad)`,
                       opacity: showBombVisual ? 0.65 : 0.2,
                     }}
@@ -529,9 +528,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Loop layout of players around the cat */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
-                const r = alivePlayers.length <= 3 ? 95 : 115
-                const x = Math.cos(angle) * r + 150 - 34
-                const y = Math.sin(angle) * r + 150 - 34
+                const r = alivePlayers.length <= 3 ? 125 : 148
+                const x = Math.cos(angle) * r + 180 - 34
+                const y = Math.sin(angle) * r + 180 - 34
                 const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 const isMe = p.user_id === userId
@@ -751,11 +750,14 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 <div
                   key={slot.key}
                   title={`${slot.name}: ${POWER_CATALOG[slot.key].description}`}
-                  className="flex-1 flex flex-col items-center justify-between p-1.5 border border-white/5 rounded-xl h-full bg-black/25 relative overflow-hidden group"
-                  style={canUse ? { borderColor: meta.border, boxShadow: `0 0 10px ${meta.border.replace('0.4', '0.08')}` } : {}}
+                  className="flex-1 flex flex-col items-center justify-between p-1.5 border rounded-xl h-full bg-black/25 relative overflow-hidden group cursor-default"
+                  style={{
+                    borderColor: canUse ? meta.border : canAfford ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
+                    boxShadow: canUse ? `0 0 12px ${meta.border.replace('0.4', '0.1')}` : 'none'
+                  }}
                 >
-                  {/* Background emoji to fill empty space */}
-                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl opacity-55 pointer-events-none select-none z-0 group-hover:scale-125 transition-transform duration-300">
+                  {/* Background emoji — larger and more visible */}
+                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl opacity-[0.18] pointer-events-none select-none z-0 group-hover:opacity-30 group-hover:scale-110 transition-all duration-300">
                     {POWER_CATALOG[slot.key].emoji}
                   </span>
 
@@ -766,38 +768,45 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                       slot.key === 'freeze' ? setSelectingFreeze(true) : handleUseAbility(slot.key)
                     }
                     className={`w-full flex-1 flex flex-col items-center justify-center transition-all relative rounded-lg border border-transparent z-10 ${canUse
-                        ? 'hover:scale-102 cursor-pointer bg-white/2 hover:bg-white/5 shadow-[0_2px_6px_rgba(0,0,0,0.15)]'
+                        ? 'hover:scale-102 cursor-pointer bg-white/2 hover:bg-white/5'
                         : 'cursor-not-allowed'
                       }`}
-                    title={`Use ${slot.name} - ${POWER_CATALOG[slot.key].description} (Owned: ${ownedCount})`}
+                    title={`Use ${slot.name} (Owned: ${ownedCount})`}
                   >
                     {/* Shortcut keycap */}
                     <span className="absolute top-1 left-1.5 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[6px] font-mono font-bold leading-none text-muted-foreground">
                       {index + 1}
                     </span>
 
-                    {/* Shortname Box with Emoji */}
+                    {/* Ability icon circle — larger */}
                     <div
-                      className="w-12 h-12 rounded-full border flex flex-col items-center justify-center font-display transition-all select-none my-0.5 bg-[#0E0E18]/95 z-10 gap-0.5"
+                      className="w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center font-display transition-all select-none my-0.5 bg-[#0E0E18]/95 z-10 gap-0.5"
                       style={{
-                        borderColor: canUse ? meta.border : 'rgba(255, 255, 255, 0.08)',
-                        boxShadow: canUse ? `inset 0 0 10px ${meta.border.replace('0.4', '0.2')}` : 'none'
+                        borderColor: canUse ? meta.border : canAfford ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
+                        boxShadow: canUse ? `inset 0 0 14px ${meta.border.replace('0.4', '0.25')}` : 'none'
                       }}
                     >
-                      <span className="text-lg leading-none select-none">{POWER_CATALOG[slot.key].emoji}</span>
+                      <span className="text-2xl leading-none select-none">{POWER_CATALOG[slot.key].emoji}</span>
                       <span
-                        className="text-[6px] font-black tracking-wider leading-none"
+                        className="text-[7px] font-black tracking-wider leading-none"
                         style={{
-                          color: canUse ? meta.text.replace('text-[', '').replace(']', '') : 'rgba(255, 255, 255, 0.35)',
+                          color: canUse
+                            ? meta.text.replace('text-[', '').replace(']', '')
+                            : canAfford
+                              ? 'rgba(255,255,255,0.5)'
+                              : 'rgba(255,255,255,0.2)',
                         }}
                       >
                         {abilityShortnames[slot.key]}
                       </span>
                     </div>
 
-                    {/* Name with Emoji */}
-                    <span className={`text-[7.5px] font-bold truncate max-w-full font-display leading-none z-10 flex items-center gap-0.5 ${canUse ? 'text-white' : 'text-muted-foreground'}`}>
-                      {POWER_CATALOG[slot.key].emoji} {slot.name}
+                    {/* Name — always bright white so readable under pressure */}
+                    <span
+                      className="text-[8px] font-black truncate max-w-full font-display leading-none z-10"
+                      style={{ color: canUse ? '#fff' : canAfford ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}
+                    >
+                      {slot.name}
                     </span>
 
                     {ownedCount > 0 && (
@@ -807,15 +816,15 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     )}
                   </button>
 
-                  {/* BUY button area */}
+                  {/* BUY button */}
                   <button
                     disabled={!canBuy}
                     onClick={() => handleBuy(slot.key)}
-                    className={`w-full mt-1.5 py-1 rounded-lg text-[8px] font-display font-black uppercase tracking-wider border transition-all z-10 ${canBuy
-                        ? 'bg-[#FF007F] border-[#FF007F] text-white hover:scale-105 cursor-pointer shadow-[0_2px_8px_rgba(255,0,127,0.2)]'
+                    className={`w-full mt-1.5 py-1.5 rounded-lg text-[9px] font-display font-black uppercase tracking-wider border transition-all z-10 ${canBuy
+                        ? 'bg-[#FF007F] border-[#FF007F] text-white hover:scale-105 cursor-pointer shadow-[0_2px_10px_rgba(255,0,127,0.3)]'
                         : 'bg-black/40 border-white/5 text-muted-foreground/30 cursor-not-allowed'
                       }`}
-                    title={`Buy ${slot.name} - ${POWER_CATALOG[slot.key].description} (Cost: ${cost} pts)`}
+                    title={`Buy ${slot.name} — ${cost} pts`}
                   >
                     Buy: {cost}
                   </button>
