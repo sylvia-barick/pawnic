@@ -237,4 +237,83 @@ Technical marketer and community architect. Debojyoti drives user acquisition, w
 
 ---
 
-> Not financial advice. Testnet only — no real funds at risk.
+## On-Chain Layer — Stellar Mainnet
+
+For live mainnet gaming sessions:
+- **Network:** Stellar Mainnet (Public)
+- **Mainnet Vault Account Address:** [`GD334OCQCGC4SFDUHYH35SC3B4UNHSQNYFUK4OMFQ7J5JHFJVIE6KOWS`](https://stellar.expert/explorer/public/account/GD334OCQCGC4SFDUHYH35SC3B4UNHSQNYFUK4OMFQ7J5JHFJVIE6KOWS)
+
+---
+
+## Visual Architecture Diagram
+
+Below is the technical flow of a game room session from initialization to on-chain payout settlement:
+
+```mermaid
+flowchart TD
+    subgraph Client [Client Side]
+        PB[Player Browser]
+        FW[Freighter Wallet]
+    end
+
+    subgraph Backend [Backend & DB Layer]
+        SA[Next.js Server Actions]
+        SRD[(Supabase Realtime DB)]
+    end
+
+    subgraph Stellar [Stellar Blockchain]
+        HAPI[Horizon API]
+        VA[Vault Account]
+    end
+
+    PB -->|1. Request Signature| FW
+    FW -->|2. Submit Signed Buy-in Tx| Stellar
+    PB -->|3. Join/Create Room with Tx Hash| SA
+    SA -->|4. Query & Verify Tx| HAPI
+    SA -->|5. Insert Session & Player| SRD
+    SRD -->|6. Sync Active Game State| PB
+    PB -->|7. Play & Trigger Explosion| SA
+    SA -->|8. Proportional Payout Calc| SA
+    SA -->|9. Send Winner Payouts| VA
+    VA -->|10. Distribute XLM on-chain| FW
+```
+
+---
+
+## How to Play & Use PAWnic
+
+Follow these steps to set up, play, and win in a PAWnic standoff:
+
+### 1. Wallet Setup
+- Install the [Freighter Browser Extension](https://www.freighter.app/).
+- Fund your account:
+  - For **Testnet**: Use the Stellar Friendbot to top up your balance.
+  - For **Mainnet**: Top up with real XLM.
+- Open the application and click the **Connect** button in the wallet status panel.
+
+### 2. Network and Buy-in Selection
+- Select your network (**Testnet** or **Mainnet**) using the toggle in the UI.
+- Set your preferred buy-in amount (minimum **0.1 XLM**).
+
+### 3. Room Management
+- **Creating a Room**: Click **Create Room** to generate a unique 6-character room code. Share this code with other players.
+- **Joining a Room**: Enter the room code shared by the host, and click **Join Room**.
+- *Note: Creating or joining a room will prompt your wallet to sign a secure buy-in payment transaction to the Vault.*
+
+### 4. Game Rules & Gameplay
+- The game starts when the room host clicks **Start Game** (requires at least 2 players).
+- One random player receives the ticking bomb (the POTATO).
+- **Passing**: Click on any other alive player in the arena to pass the potato to them.
+- **Points**: You accumulate points each second you hold the potato.
+- **The Shop**: Spend points in the **Shop** panel to buy abilities (Mirror, Shield, Freeze, Nine Lives, Smoke Screen) to shield yourself or freeze opponents.
+- **Elimination**: The bomb has a secret countdown timer. If it hits zero while in your paws, you explode and are eliminated!
+
+### 5. Instant Settlement
+- The match ends immediately when a player is eliminated.
+- The Vault automatically calculates the surviving players' proportional payout share based on how long they survived and their buy-in size.
+- Payouts are distributed on-chain instantly back to the survivors' Stellar wallets!
+
+---
+
+> Not financial advice. Testnet is recommended for testing — play responsibly.
+
