@@ -150,7 +150,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         setIsJumping(true)
         const timer = setTimeout(() => {
           setIsJumping(false)
-        }, 500)
+        }, 200)
         return () => clearTimeout(timer)
       }
     }
@@ -281,9 +281,9 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
   const bombHolder = players.find(p => p.id === effectiveBombHolderId)
   const isMeHolding = bombHolder?.user_id === userId
-  const shouldHideHolder = isSmokeScreenActive
-
   const iHaveBomb = effectiveBombHolderId === myPlayer?.id
+  const shouldHideHolder = isSmokeScreenActive && !iHaveBomb
+
   const isFrozen = !!(myPlayer?.is_frozen && myPlayer.frozen_until && new Date(myPlayer.frozen_until) > new Date())
 
   // Ability slots config mapped to the mockup descriptions & actions
@@ -297,6 +297,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
   const myPowers = (myPlayer?.powers ?? {}) as Record<string, any>
   const angleStep = alivePlayers.length > 1 ? (2 * Math.PI) / alivePlayers.length : 0
+  const radius = alivePlayers.length <= 3 ? 92 : 102
 
   // Compute ball coordinates
   let ballX = 150
@@ -307,11 +308,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
     const holderIdx = alivePlayers.findIndex(p => p.id === effectiveBombHolderId)
     if (holderIdx !== -1) {
       const angle = angleStep * holderIdx - Math.PI / 2
-      const r = alivePlayers.length <= 3 ? 108 : 128
+      const r = radius
       const px = Math.cos(angle) * r + 150 - 34
       const py = Math.sin(angle) * r + 150 - 34
-      ballX = px + 54
-      ballY = py - 4
+      ballX = px + 52
+      ballY = py - 6
       showBall = true
     }
   }
@@ -503,17 +504,17 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Dynamic Passing Ball */}
               {showBall && (
                 <div
-                  className="absolute transition-all duration-500 ease-out z-30 pointer-events-none"
+                  className="absolute transition-all duration-200 ease-out z-30 pointer-events-none"
                   style={{
                     left: ballX,
                     top: ballY,
-                    width: 24,
-                    height: 24,
+                    width: 38,
+                    height: 38,
                     transform: 'translate(-50%, -50%)',
                   }}
                 >
                   <div
-                    className={`w-full h-full rounded-full overflow-hidden border border-[#FF007F] shadow-[0_0_10px_rgba(255,0,127,0.8)] bg-black ${isJumping ? 'animate-ball-jump' : 'animate-bomb-bounce'
+                    className={`w-full h-full rounded-full overflow-hidden border-2 border-[#FF007F] shadow-[0_0_15px_rgba(255,0,127,0.95)] bg-black ${isJumping ? 'animate-ball-jump' : 'animate-bomb-bounce'
                       }`}
                   >
                     <img
@@ -528,7 +529,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Loop layout of players around the cat */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
-                const r = alivePlayers.length <= 3 ? 108 : 128
+                const r = radius
                 const x = Math.cos(angle) * r + 150 - 34
                 const y = Math.sin(angle) * r + 150 - 34
                 const hasBomb = p.id === effectiveBombHolderId
@@ -537,6 +538,19 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 const canPass = iHaveBomb && !isMe && !isFrozen && !isPending
 
                 const playerReactions = reactions.filter(r => r.playerId === p.id)
+
+                // Calculate active ability timers for this player
+                const now = Date.now()
+                const frozenSec = p.is_frozen && p.frozen_until
+                  ? Math.max(0, Math.ceil((new Date(p.frozen_until).getTime() - now) / 1000))
+                  : 0
+                const catnipSec = p.double_points_until
+                  ? Math.max(0, Math.ceil((new Date(p.double_points_until).getTime() - now) / 1000))
+                  : 0
+                const pPowers = (p.powers ?? {}) as Record<string, any>
+                const smokeSec = pPowers.smoke_screen_until
+                  ? Math.max(0, Math.ceil((new Date(pPowers.smoke_screen_until).getTime() - now) / 1000))
+                  : 0
 
                 return (
                   <div
@@ -566,7 +580,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                       onClick={() => canPass && handlePass(p.id)}
                       disabled={!canPass}
                       className={`avatar-circle w-16 h-16 rounded-2xl border-3 flex items-center justify-center overflow-hidden transition-all relative select-none ${showBombVisual
-                          ? 'border-[#FF007F] animate-pulse shadow-[0_0_15px_#FF007F]'
+                          ? 'border-4 border-[#FF007F] scale-105 shadow-[0_0_25px_#FF007F,inset_0_0_10px_rgba(255,0,127,0.6)] animate-pulse'
                           : canPass
                             ? 'border-[#06B6D4] hover:scale-110 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]'
                             : isMe
@@ -580,9 +594,39 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                       ) : (
                         <span className="text-2xl">{p.avatar}</span>
                       )}
-                      {p.is_frozen && p.frozen_until && new Date(p.frozen_until) > new Date() && <span className="absolute -bottom-1 -right-1 text-xs">❄️</span>}
-                      {p.shield_active && <span className="absolute -bottom-1 -left-1 text-xs">🛡️</span>}
-                      {p.reverse_active && <span className="absolute -top-1 -right-1 text-xs" title="Mirror Active">🔮</span>}
+                      
+                      {/* Ticking Status Badges on Avatar Corners */}
+                      {catnipSec > 0 && (
+                        <span className="absolute -top-1 -left-1 text-[8px] bg-[#22C55E] text-white border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5">
+                          🌿{catnipSec}s
+                        </span>
+                      )}
+                      {frozenSec > 0 && (
+                        <span className="absolute -bottom-1 -right-1 text-[8px] bg-[#06B6D4] text-black border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5 animate-pulse">
+                          ❄️{frozenSec}s
+                        </span>
+                      )}
+                      {smokeSec > 0 && (
+                        <span className="absolute -top-1 -right-1 text-[8px] bg-slate-500 text-white border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5">
+                          ☁️{smokeSec}s
+                        </span>
+                      )}
+                      {p.shield_active && (
+                        <span className="absolute -bottom-1 -left-1 text-[8px] bg-[#EAB308] text-black border border-black rounded px-1 select-none z-20 font-bold leading-none py-0.5">
+                          🛡️
+                        </span>
+                      )}
+                      {p.reverse_active && !showBombVisual && (
+                        <span className="absolute -top-1 -right-1 text-[8px] bg-[#A855F7] text-white border border-black rounded px-1 select-none z-20 font-bold leading-none py-0.5" title="Mirror Active">
+                          🔮
+                        </span>
+                      )}
+
+                      {showBombVisual && (
+                        <span className="absolute -top-1.5 -right-1 text-lg z-30 select-none animate-bounce filter drop-shadow-[0_0_4px_#FF007F]">
+                          💣
+                        </span>
+                      )}
                     </button>
                     <span
                       className={`text-center leading-none font-display text-[9px] font-bold max-w-full truncate ${isMe ? 'text-[#FF5F1F]' : 'text-foreground'
@@ -610,13 +654,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
         {/* Card Footer (HUD display inside Arena Panel) */}
         {room?.status === 'playing' && (
-          <div className="flex justify-between items-center w-full z-10 shrink-0 border-t border-white/5 pt-3">
-            <button
-              onClick={() => alert('Leaderboard is displayed on the left side.')}
-              className="px-3.5 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-display font-bold uppercase tracking-wider transition-colors text-white"
-            >
-              View Leaderboard
-            </button>
+          <div className="flex justify-end items-center w-full z-10 shrink-0 border-t border-white/5 pt-3">
             <div className="flex items-center gap-1.5 bg-[#0E0E18] border border-white/5 rounded-xl px-3 py-1.5 text-xs font-mono font-bold">
               <span className="text-muted-foreground font-display font-bold text-[9px] uppercase tracking-wider mr-1">
                 Ability Coins
@@ -628,54 +666,6 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         )}
       </div>
 
-      {/* Active Effects Bar — live countdown badges for all active ability states */}
-      {room?.status === 'playing' && myPlayer && (() => {
-        const now = Date.now()
-        const frozenSec = myPlayer.is_frozen && myPlayer.frozen_until
-          ? Math.max(0, Math.ceil((new Date(myPlayer.frozen_until).getTime() - now) / 1000))
-          : 0
-        const catnipSec = myPlayer.double_points_until
-          ? Math.max(0, Math.ceil((new Date(myPlayer.double_points_until).getTime() - now) / 1000))
-          : 0
-        const myPowersMap = (myPlayer.powers ?? {}) as Record<string, any>
-        const smokeSec = myPowersMap.smoke_screen_until
-          ? Math.max(0, Math.ceil((new Date(myPowersMap.smoke_screen_until).getTime() - now) / 1000))
-          : 0
-
-        const effects = [
-          frozenSec > 0   && { label: `Frozen`, timer: frozenSec,  emoji: '❄️',  color: '#06B6D4', bg: 'rgba(6,182,212,0.12)',  border: 'rgba(6,182,212,0.35)' },
-          catnipSec > 0   && { label: `Catnip`, timer: catnipSec,  emoji: '🌿',  color: '#22C55E', bg: 'rgba(34,197,94,0.12)',  border: 'rgba(34,197,94,0.35)' },
-          smokeSec > 0    && { label: `Smoke`,  timer: smokeSec,   emoji: '☁️',  color: '#94A3B8', bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.35)' },
-          myPlayer.shield_active  && { label: 'Shield',  timer: null, emoji: '🛡️', color: '#EAB308', bg: 'rgba(234,179,8,0.12)',   border: 'rgba(234,179,8,0.35)' },
-          myPlayer.reverse_active && { label: 'Mirror',  timer: null, emoji: '🔮', color: '#A855F7', bg: 'rgba(168,85,247,0.12)',  border: 'rgba(168,85,247,0.35)' },
-        ].filter(Boolean) as { label: string; timer: number | null; emoji: string; color: string; bg: string; border: string }[]
-
-        if (effects.length === 0) return null
-        return (
-          <div className="flex flex-wrap gap-2 px-1 shrink-0">
-            {effects.map(fx => (
-              <div
-                key={fx.label}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-display font-black uppercase tracking-wider border"
-                style={{ background: fx.bg, borderColor: fx.border, color: fx.color, boxShadow: `0 0 8px ${fx.border}` }}
-              >
-                <span>{fx.emoji}</span>
-                <span>{fx.label}</span>
-                {fx.timer !== null && (
-                  <span
-                    className="font-mono font-black"
-                    style={{ color: fx.timer <= 3 ? '#FF007F' : fx.color }}
-                  >
-                    {fx.timer}s
-                  </span>
-                )}
-                {fx.label === 'Shield' && <span className="text-[8px] opacity-60">ACTIVE</span>}
-                {fx.label === 'Mirror' && <span className="text-[8px] opacity-60">READY</span>}
-              </div>
-            ))}
-          </div>
-        )
-      })()}
 
       {/* Target selector popup for Freezing ability */}
       {selectingFreeze && (
@@ -727,16 +717,16 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
       )}
 
       {/* 2. Bottom row split: Abilities Panel & Chat Panel */}
-      <div className="flex gap-4 shrink-0 h-48">
+      <div className="flex gap-4 shrink-0 h-52">
         {/* Left column: Abilities console (5 slots) */}
-        <div className="glass-panel glow-purple rounded-2xl p-4 flex-1 flex flex-col justify-between">
+        <div className="glass-panel glow-purple rounded-2xl p-3 flex-1 flex flex-col justify-between">
           <span className="flex items-center gap-2 text-left border-b border-white/5 pb-1.5 mb-2.5">
-            <span className="w-1 h-3.5 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
-            <span className="font-display text-[11px] uppercase tracking-[0.2em] text-foreground font-black">
-              Abilities
+            <span className="w-1.5 h-3.5 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
+            <span className="font-display text-[11px] uppercase tracking-[0.2em] text-[#94A3B8] font-black">
+              Abilities Console
             </span>
           </span>
-          <div className="flex gap-2.5 justify-between items-center flex-1 py-1">
+          <div className="flex gap-3 justify-between items-center flex-1 py-0.5 px-0.5">
             {abilitySlots.map((slot, index) => {
               const ownedCount = myPowers[slot.key] ?? 0
               const isPlaying = room?.status === 'playing'
@@ -747,92 +737,73 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               const meta = abilityColors[slot.key]
 
               return (
-                <div
+                <button
                   key={slot.key}
+                  disabled={!canUse && !canBuy}
+                  onClick={() => {
+                    if (canUse) {
+                      slot.key === 'freeze' ? setSelectingFreeze(true) : handleUseAbility(slot.key)
+                    } else if (canBuy) {
+                      handleBuy(slot.key)
+                    }
+                  }}
                   title={`${slot.name}: ${POWER_CATALOG[slot.key].description}`}
-                  className="flex-1 flex flex-col items-center justify-between p-1.5 border rounded-xl h-full bg-black/25 relative overflow-hidden group cursor-default"
+                  className={`flex-1 flex flex-col items-center justify-between p-2 rounded-xl h-full relative overflow-hidden group transition-all duration-200 border ${
+                    canUse || canBuy
+                      ? 'hover:scale-[1.03] active:scale-95 cursor-pointer'
+                      : 'cursor-default opacity-50'
+                  }`}
                   style={{
-                    borderColor: canUse ? meta.border : canAfford ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
-                    boxShadow: canUse ? `0 0 12px ${meta.border.replace('0.4', '0.1')}` : 'none'
+                    background: canUse 
+                      ? 'linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(15, 12, 30, 0.6))'
+                      : 'rgba(6, 6, 10, 0.35)',
+                    borderColor: canUse 
+                      ? meta.border.replace('0.4', '0.75') 
+                      : canBuy 
+                        ? 'rgba(255, 80, 160, 0.25)' 
+                        : 'rgba(255, 255, 255, 0.05)',
+                    boxShadow: canUse 
+                      ? `0 0 14px ${meta.border.replace('0.4', '0.2')}, inset 0 0 10px rgba(168, 85, 247, 0.05)` 
+                      : 'none'
                   }}
                 >
-                  {/* Background emoji — larger and more visible */}
-                  <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl opacity-[0.18] pointer-events-none select-none z-0 group-hover:opacity-30 group-hover:scale-110 transition-all duration-300">
+                  {/* Background grid details */}
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:8px_8px] pointer-events-none opacity-20" />
+
+                  {/* Shortcut keycap */}
+                  <span className="absolute top-1.5 left-1.5 px-1 py-0.5 rounded bg-black/60 border border-slate-700/60 text-[7px] font-mono font-bold leading-none text-muted-foreground shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                    {index + 1}
+                  </span>
+
+                  {/* Floating Emoji */}
+                  <span className="text-3xl mt-3.5 mb-1.5 block transition-transform duration-300 group-hover:scale-110 select-none">
                     {POWER_CATALOG[slot.key].emoji}
                   </span>
 
-                  {/* USE button area */}
-                  <button
-                    disabled={!canUse}
-                    onClick={() =>
-                      slot.key === 'freeze' ? setSelectingFreeze(true) : handleUseAbility(slot.key)
-                    }
-                    className={`w-full flex-1 flex flex-col items-center justify-center transition-all relative rounded-lg border border-transparent z-10 ${canUse
-                        ? 'hover:scale-102 cursor-pointer bg-white/2 hover:bg-white/5'
-                        : 'cursor-not-allowed'
-                      }`}
-                    title={`Use ${slot.name} (Owned: ${ownedCount})`}
+                  {/* Name */}
+                  <span
+                    className="text-[9px] font-black truncate max-w-full font-display tracking-wider leading-none select-none"
+                    style={{ color: canUse ? '#fff' : 'rgba(255,255,255,0.45)' }}
                   >
-                    {/* Shortcut keycap */}
-                    <span className="absolute top-1 left-1.5 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[6px] font-mono font-bold leading-none text-muted-foreground">
-                      {index + 1}
-                    </span>
+                    {slot.name}
+                  </span>
 
-                    {/* Ability icon circle — larger */}
-                    <div
-                      className="w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center font-display transition-all select-none my-0.5 bg-[#0E0E18]/95 z-10 gap-0.5"
-                      style={{
-                        borderColor: canUse ? meta.border : canAfford ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
-                        boxShadow: canUse ? `inset 0 0 14px ${meta.border.replace('0.4', '0.25')}` : 'none'
-                      }}
-                    >
-                      <span className="text-2xl leading-none select-none">{POWER_CATALOG[slot.key].emoji}</span>
-                      <span
-                        className="text-[7px] font-black tracking-wider leading-none"
-                        style={{
-                          color: canUse
-                            ? meta.text.replace('text-[', '').replace(']', '')
-                            : canAfford
-                              ? 'rgba(255,255,255,0.5)'
-                              : 'rgba(255,255,255,0.2)',
-                        }}
-                      >
-                        {abilityShortnames[slot.key]}
-                      </span>
-                    </div>
-
-                    {/* Name — always bright white so readable under pressure */}
-                    <span
-                      className="text-[8px] font-black truncate max-w-full font-display leading-none z-10"
-                      style={{ color: canUse ? '#fff' : canAfford ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)' }}
-                    >
-                      {slot.name}
-                    </span>
-
-                    {ownedCount > 0 && (
-                      <span className="absolute top-1 right-1 px-1 py-0.5 rounded bg-[#A855F7]/30 text-[7px] font-bold text-white font-mono leading-none border border-[#A855F7]/30">
-                        x{ownedCount}
-                      </span>
-                    )}
-                  </button>
-
-                  {/* BUY button */}
-                  <button
-                    disabled={!canBuy}
-                    onClick={() => handleBuy(slot.key)}
-                    className={`w-full mt-1.5 py-1.5 rounded-lg text-[9px] font-display font-black uppercase tracking-wider border transition-all z-10 ${canBuy
-                        ? 'bg-[#FF007F] border-[#FF007F] text-white hover:scale-105 cursor-pointer shadow-[0_2px_10px_rgba(255,0,127,0.3)]'
-                        : 'bg-black/40 border-white/5 text-muted-foreground/30 cursor-not-allowed'
-                      }`}
-                    title={`Buy ${slot.name} — ${cost} pts`}
-                  >
-                    Buy: {cost}
-                  </button>
-                </div>
+                  {/* Dynamic Status / Action Label Badge */}
+                  <span className={`text-[7.5px] font-black uppercase tracking-wider font-display border px-1.5 py-0.5 rounded mt-2.5 z-10 select-none ${
+                    canUse
+                      ? 'bg-[#A855F7]/10 border-[#A855F7]/40 text-[#A855F7]'
+                      : canBuy
+                        ? 'bg-[#FF007F]/10 border-[#FF007F]/40 text-[#FF007F]'
+                        : 'bg-white/5 border-transparent text-muted-foreground/35'
+                  }`}>
+                    {canUse ? `USE (x${ownedCount})` : `BUY: ${cost}`}
+                  </span>
+                </button>
               )
             })}
           </div>
         </div>
+
 
         {/* Right column: Chat Console */}
         <div className="glass-panel glow-purple rounded-2xl flex flex-col" style={{ width: 280 }}>

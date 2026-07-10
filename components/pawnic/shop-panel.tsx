@@ -159,6 +159,23 @@ export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
             .map(ev => {
               const meta = resolveEventMeta(ev)
               const EvIcon = meta.icon
+
+              // Mask pass messages if they occurred during active smoke screen
+              let displayMsg = ev.message
+              if (ev.type === 'pass') {
+                const evTime = new Date(ev.created_at).getTime()
+                const isSmokeActive = players.some(p => {
+                  const pPowers = (p.powers ?? {}) as Record<string, any>
+                  const until = pPowers.smoke_screen_until
+                  if (!until) return false
+                  const untilTime = new Date(until).getTime()
+                  return evTime >= (untilTime - 10000) && evTime <= untilTime
+                })
+                if (isSmokeActive) {
+                  displayMsg = 'POTATO passed secretly... ☁️'
+                }
+              }
+
               return (
                 <div key={ev.id} className="relative flex gap-2.5 items-start text-[11px] leading-tight">
                   {/* Timeline bullet dot */}
@@ -170,7 +187,7 @@ export function ShopPanel({ room, players, events, myPlayer, userId }: Props) {
                   <EvIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: meta.colorCode }} />
                   <div className="flex-1 min-w-0">
                     <p className={`font-semibold ${meta.textColor} truncate`}>
-                      {ev.message}
+                      {displayMsg}
                     </p>
                   </div>
                   <span className="text-[9px] text-muted-foreground shrink-0 mt-0.5 font-mono">
