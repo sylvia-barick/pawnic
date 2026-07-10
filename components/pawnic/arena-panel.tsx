@@ -297,11 +297,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
   const myPowers = (myPlayer?.powers ?? {}) as Record<string, any>
   const angleStep = alivePlayers.length > 1 ? (2 * Math.PI) / alivePlayers.length : 0
-  const radius = alivePlayers.length <= 3 ? 92 : 102
+  const radius = alivePlayers.length <= 3 ? 75 : 82
 
   // Compute ball coordinates
-  let ballX = 150
-  let ballY = 150
+  let ballX = 120
+  let ballY = 120
   let showBall = false
 
   if (room?.status === 'playing' && effectiveBombHolderId && !shouldHideHolder) {
@@ -309,10 +309,10 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
     if (holderIdx !== -1) {
       const angle = angleStep * holderIdx - Math.PI / 2
       const r = radius
-      const px = Math.cos(angle) * r + 150 - 34
-      const py = Math.sin(angle) * r + 150 - 34
-      ballX = px + 52
-      ballY = py - 6
+      const px = Math.cos(angle) * r + 120 - 28
+      const py = Math.sin(angle) * r + 120 - 28
+      ballX = px + 44
+      ballY = py - 2
       showBall = true
     }
   }
@@ -458,13 +458,13 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
         {room?.status === 'playing' && (
           <div className="flex-1 w-full relative flex items-center justify-center min-h-0 select-none overflow-hidden">
             {/* Circular active players loop wrapper */}
-            <div className="relative" style={{ width: 300, height: 300 }}>
+            <div className="relative" style={{ width: 240, height: 240 }}>
 
               {/* Central Holographic Arena floor details */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="arena-hologram-floor flex items-center justify-center">
-                  <div className="arena-hologram-ring-outer flex items-center justify-center">
-                    <div className="arena-hologram-ring-inner" />
+                <div className="arena-hologram-floor flex items-center justify-center" style={{ width: 220, height: 220 }}>
+                  <div className="arena-hologram-ring-outer flex items-center justify-center" style={{ width: 190, height: 190 }}>
+                    <div className="arena-hologram-ring-inner" style={{ width: 110, height: 110 }} />
                   </div>
                 </div>
               </div>
@@ -472,7 +472,7 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {/* Laser wires connecting players to center */}
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
-                const r = alivePlayers.length <= 3 ? 108 : 128
+                const r = radius
                 const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 return (
@@ -481,8 +481,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     className={`arena-laser-line ${showBombVisual ? 'active' : ''}`}
                     style={{
                       width: r,
-                      left: 150,
-                      top: 150,
+                      left: 120,
+                      top: 120,
                       transform: `rotate(${angle}rad)`,
                       opacity: showBombVisual ? 0.65 : 0.2,
                     }}
@@ -492,11 +492,11 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
 
               {/* Central Glowing Cat Asset */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-32 h-32 rounded-full bg-cover bg-center border border-[#FF007F]/45 shadow-[0_0_40px_rgba(255,0,127,0.65)] animate-glow-pulse overflow-hidden flex items-center justify-center bg-black/60">
+                <div className="w-24 h-24 rounded-full bg-cover bg-center border border-[#FF007F]/45 shadow-[0_0_30px_rgba(255,0,127,0.55)] animate-glow-pulse overflow-hidden flex items-center justify-center bg-black/60">
                   <img
                     src="/neon-cat.png"
                     alt="Cursed Cat"
-                    className="w-24 h-24 object-contain animate-bomb-bounce scale-105"
+                    className="w-18 h-18 object-contain animate-bomb-bounce scale-105"
                   />
                 </div>
               </div>
@@ -508,8 +508,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                   style={{
                     left: ballX,
                     top: ballY,
-                    width: 38,
-                    height: 38,
+                    width: 32,
+                    height: 32,
                     transform: 'translate(-50%, -50%)',
                   }}
                 >
@@ -530,8 +530,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
               {alivePlayers.map((p, i) => {
                 const angle = angleStep * i - Math.PI / 2
                 const r = radius
-                const x = Math.cos(angle) * r + 150 - 34
-                const y = Math.sin(angle) * r + 150 - 34
+                const x = Math.cos(angle) * r + 120 - 28
+                const y = Math.sin(angle) * r + 120 - 28
                 const hasBomb = p.id === effectiveBombHolderId
                 const showBombVisual = hasBomb && !shouldHideHolder
                 const isMe = p.user_id === userId
@@ -555,8 +555,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                 return (
                   <div
                     key={p.id}
-                    className="absolute flex flex-col items-center justify-center gap-1.5 z-10"
-                    style={{ left: x, top: y, width: 68 }}
+                    className="absolute flex flex-col items-center justify-center gap-1 z-10"
+                    style={{ left: x, top: y, width: 56 }}
                   >
                     {/* Floating Reactions */}
                     {playerReactions.map(r => (
@@ -579,8 +579,8 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                     <button
                       onClick={() => canPass && handlePass(p.id)}
                       disabled={!canPass}
-                      className={`avatar-circle w-16 h-16 rounded-2xl border-3 flex items-center justify-center overflow-hidden transition-all relative select-none ${showBombVisual
-                          ? 'border-4 border-[#FF007F] scale-105 shadow-[0_0_25px_#FF007F,inset_0_0_10px_rgba(255,0,127,0.6)] animate-pulse'
+                      className={`avatar-circle w-14 h-14 rounded-2xl border-3 flex items-center justify-center overflow-hidden transition-all relative select-none ${showBombVisual
+                          ? 'border-4 border-[#FF007F] scale-105 shadow-[0_0_20px_#FF007F,inset_0_0_10px_rgba(255,0,127,0.6)] animate-pulse'
                           : canPass
                             ? 'border-[#06B6D4] hover:scale-110 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]'
                             : isMe
@@ -592,38 +592,38 @@ export function ArenaPanel({ room, players, events, myPlayer, userId, reactions,
                       {p.avatar.endsWith('.png') ? (
                         <img src={`/${p.avatar}`} alt="Cat" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-2xl">{p.avatar}</span>
+                        <span className="text-xl">{p.avatar}</span>
                       )}
                       
                       {/* Ticking Status Badges on Avatar Corners */}
                       {catnipSec > 0 && (
-                        <span className="absolute -top-1 -left-1 text-[8px] bg-[#22C55E] text-white border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5">
+                        <span className="absolute -top-1 -left-1 text-[7.5px] bg-[#22C55E] text-white border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5">
                           🌿{catnipSec}s
                         </span>
                       )}
                       {frozenSec > 0 && (
-                        <span className="absolute -bottom-1 -right-1 text-[8px] bg-[#06B6D4] text-black border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5 animate-pulse">
+                        <span className="absolute -bottom-1 -right-1 text-[7.5px] bg-[#06B6D4] text-black border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5 animate-pulse">
                           ❄️{frozenSec}s
                         </span>
                       )}
                       {smokeSec > 0 && (
-                        <span className="absolute -top-1 -right-1 text-[8px] bg-slate-500 text-white border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5">
+                        <span className="absolute -top-1 -right-1 text-[7.5px] bg-slate-500 text-white border border-black rounded px-1 select-none z-20 font-mono font-bold leading-none py-0.5">
                           ☁️{smokeSec}s
                         </span>
                       )}
                       {p.shield_active && (
-                        <span className="absolute -bottom-1 -left-1 text-[8px] bg-[#EAB308] text-black border border-black rounded px-1 select-none z-20 font-bold leading-none py-0.5">
+                        <span className="absolute -bottom-1 -left-1 text-[7.5px] bg-[#EAB308] text-black border border-black rounded px-1 select-none z-20 font-bold leading-none py-0.5">
                           🛡️
                         </span>
                       )}
                       {p.reverse_active && !showBombVisual && (
-                        <span className="absolute -top-1 -right-1 text-[8px] bg-[#A855F7] text-white border border-black rounded px-1 select-none z-20 font-bold leading-none py-0.5" title="Mirror Active">
+                        <span className="absolute -top-1 -right-1 text-[7.5px] bg-[#A855F7] text-white border border-black rounded px-1 select-none z-20 font-bold leading-none py-0.5" title="Mirror Active">
                           🔮
                         </span>
                       )}
 
                       {showBombVisual && (
-                        <span className="absolute -top-1.5 -right-1 text-lg z-30 select-none animate-bounce filter drop-shadow-[0_0_4px_#FF007F]">
+                        <span className="absolute -top-1.5 -right-1 text-base z-30 select-none animate-bounce filter drop-shadow-[0_0_4px_#FF007F]">
                           💣
                         </span>
                       )}
