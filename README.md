@@ -17,7 +17,7 @@
 
 **PAWnic** is a real-time multiplayer party game where players pass a neon cat like a hot potato. Miss your pass window, and you explode. Last player standing takes the prize pool — settled on-chain, instantly.
 
-> 🚧 **Currently in closed beta on Stellar Testnet.** Mainnet launch coming soon.
+> 🚧 **Currently in closed beta on Stellar Mainnet & Testnet.**
 
 ---
 
@@ -63,14 +63,16 @@ Player signs buy-in → XLM sent to Vault account → Horizon verifies tx hash
 Last player alive → Vault distributes prize pool → On-chain payout tx
 ```
 
-- **Network:** Stellar Testnet
+- **Networks:** Stellar Mainnet & Testnet
 - **Wallet:** [Freighter](https://www.freighter.app/) (browser extension)
-- **Vault Account:** [`GBNOTQ...HOILT`](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT)
+- **Mainnet Vault Account:** [`GD334O...KOWS`](https://stellar.expert/explorer/public/account/GD334OCQCGC4SFDUHYH35SC3B4UNHSQNYFUK4OMFQ7J5JHFJVIE6KOWS)
+- **Testnet Vault Account:** [`GBNOTQ...HOILT`](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT)
 - **Minimum buy-in:** 0.1 XLM
 - **Settlement:** Automatic on game completion
 
 **Live evidence:**
-- 🔗 [Vault on Stellar Expert Testnet](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT) — 120+ processed payments
+- 🔗 [Mainnet Vault on Stellar Expert](https://stellar.expert/explorer/public/account/GD334OCQCGC4SFDUHYH35SC3B4UNHSQNYFUK4OMFQ7J5JHFJVIE6KOWS) — live production history
+- 🔗 [Testnet Vault on Stellar Expert](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT) — 120+ processed testnet payments
 - 📊 [User Payments Sheet](https://docs.google.com/spreadsheets/d/1Wj2h8oxt-n-SJclkCVpO8mBniTHW1Rhejr6Sei69AAQ/edit?gid=0#gid=0) — live beta metrics
 
 ---
@@ -101,7 +103,7 @@ Last player alive → Vault distributes prize pool → On-chain payout tx
 | Metric | Value |
 |:---|:---|
 | Beta phase | Closed beta (waitlist open) |
-| Network | Stellar Testnet |
+| Network | Stellar Mainnet & Testnet |
 | On-chain payments processed | 120+ |
 | Room settlement | Verified via Horizon API |
 | Realtime sync | Supabase Realtime |
