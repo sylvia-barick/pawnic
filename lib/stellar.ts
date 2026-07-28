@@ -26,6 +26,16 @@ export async function verifyBuyInTransaction(
       return false
     }
 
+    // 2. Prevent replay attacks by checking the transaction timestamp (max age: 15 minutes)
+    const txTime = new Date(tx.created_at).getTime()
+    const now = Date.now()
+    const diffMs = now - txTime
+    // Allow up to 15 minutes of buffer for ledger ingestion delays and up to 5 minutes of future drift
+    if (diffMs > 15 * 60 * 1000 || diffMs < -5 * 60 * 1000) {
+      console.warn(`Transaction ${txHash} is too old: ledgered at ${tx.created_at} (current system time: ${new Date().toISOString()})`)
+      return false
+    }
+
     // 2. Fetch transaction operations
     const opsPage = await server.operations().forTransaction(txHash).call()
     

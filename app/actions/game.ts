@@ -41,7 +41,17 @@ export async function createRoom(
   const supabase = createClient()
   const code = generateCode()
 
-  // 1. Verify player's payment transaction on Stellar Testnet
+  // 1. Prevent transaction replay attacks: check if txHash was already processed
+  const { data: existingTx } = await supabase
+    .from('players')
+    .select('id')
+    .eq('buyin_tx_hash', txHash)
+    .maybeSingle()
+  if (existingTx) {
+    return { error: 'This transaction hash has already been used.' }
+  }
+
+  // 2. Verify player's payment transaction on Stellar Testnet
   const verified = await verifyBuyInTransaction(txHash, buyInXlm.toFixed(7), stellarAddress)
   if (!verified) {
     return { error: 'Buy-in Stellar transaction verification failed. Please try again.' }
@@ -60,7 +70,15 @@ export async function createRoom(
 
   const { error: playerError } = await supabase
     .from('players')
-    .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: initialPowers, points: 100 })
+    .insert({
+      room_id: room.id,
+      user_id: userId,
+      nickname,
+      avatar,
+      powers: initialPowers,
+      points: 100,
+      buyin_tx_hash: txHash
+    })
 
   if (playerError) return { error: playerError.message }
 
@@ -102,7 +120,22 @@ export async function joinRoom(
     .maybeSingle()
 
   if (!existing) {
-    // 1. Verify player's payment transaction on Stellar
+    // 1. Verify that the user-provided buy-in matches the room's set buy-in
+    if (Number(buyInXlm) !== Number(room.buy_in)) {
+      return { error: `Mismatched buy-in amount. This room requires ${room.buy_in} XLM, but client provided ${buyInXlm} XLM.` }
+    }
+
+    // 2. Prevent transaction replay attacks: check if txHash was already processed
+    const { data: existingTx } = await supabase
+      .from('players')
+      .select('id')
+      .eq('buyin_tx_hash', txHash)
+      .maybeSingle()
+    if (existingTx) {
+      return { error: 'This transaction hash has already been used.' }
+    }
+
+    // 3. Verify player's payment transaction on Stellar
     const verified = await verifyBuyInTransaction(txHash, buyInXlm.toFixed(7), stellarAddress)
     if (!verified) {
       return { error: `Buy-in Stellar transaction verification failed. Must pay ${buyInXlm} XLM.` }
@@ -118,7 +151,15 @@ export async function joinRoom(
 
     const { error: playerError } = await supabase
       .from('players')
-      .insert({ room_id: room.id, user_id: userId, nickname, avatar, powers: initialPowers, points: 100 })
+      .insert({
+        room_id: room.id,
+        user_id: userId,
+        nickname,
+        avatar,
+        powers: initialPowers,
+        points: 100,
+        buyin_tx_hash: txHash
+      })
 
     if (playerError) return { error: playerError.message }
 

@@ -35,6 +35,7 @@ CREATE TABLE players (
     double_points_until TIMESTAMPTZ,
     reverse_active BOOLEAN NOT NULL DEFAULT false,
     powers JSONB NOT NULL DEFAULT '{}'::jsonb,
+    buyin_tx_hash VARCHAR(64) UNIQUE,
     joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT unique_player_in_room UNIQUE (room_id, user_id)
 );
@@ -53,27 +54,15 @@ CREATE TABLE events (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 5. Enable Row Level Security (RLS) and set open access policies
--- Since this game does not require user authentication (users are identified by generated client UUIDs),
--- we open the policies for reading, inserting, updating, and deleting.
+-- Since all mutations are done via secure server actions (which use the service_role key to bypass RLS),
+-- we restrict public database access to read-only (SELECT).
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE players ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public read rooms" ON rooms FOR SELECT USING (true);
-CREATE POLICY "Allow public insert rooms" ON rooms FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update rooms" ON rooms FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete rooms" ON rooms FOR DELETE USING (true);
-
 CREATE POLICY "Allow public read players" ON players FOR SELECT USING (true);
-CREATE POLICY "Allow public insert players" ON players FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update players" ON players FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete players" ON players FOR DELETE USING (true);
-
 CREATE POLICY "Allow public read events" ON events FOR SELECT USING (true);
-CREATE POLICY "Allow public insert events" ON events FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update events" ON events FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete events" ON events FOR DELETE USING (true);
 
 -- 6. Enable Realtime replication for collaborative multiplayer syncing
 -- Run these statements to add the tables to the supabase_realtime publication.
