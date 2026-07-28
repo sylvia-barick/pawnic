@@ -9,7 +9,7 @@
 <p align="center">
   <img alt="Status" src="https://img.shields.io/badge/status-closed%20beta-FF007F?style=flat-square" />
   <img alt="Network" src="https://img.shields.io/badge/network-Stellar%20Testnet-9B8FE8?style=flat-square" />
-  <img alt="Payments" src="https://img.shields.io/badge/on--chain%20payments-120%2B-00C49F?style=flat-square" />
+  <img alt="Payments" src="https://img.shields.io/badge/on--chain%20payments-468%2B-00C49F?style=flat-square" />
   <img alt="Stack" src="https://img.shields.io/badge/stack-Next.js%20%2B%20Supabase%20%2B%20Stellar-0E0F14?style=flat-square" />
 </p>
 
@@ -72,7 +72,7 @@ Last player alive → Vault distributes prize pool → On-chain payout tx
 
 **Live evidence:**
 - 🔗 [Mainnet Vault on Stellar Expert](https://stellar.expert/explorer/public/account/GD334OCQCGC4SFDUHYH35SC3B4UNHSQNYFUK4OMFQ7J5JHFJVIE6KOWS) — live production history
-- 🔗 [Testnet Vault on Stellar Expert](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT) — 120+ processed testnet payments
+- 🔗 [Testnet Vault on Stellar Expert](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT) — 468+ processed testnet payments
 - 📊 [User Payments Sheet](https://docs.google.com/spreadsheets/d/1Wj2h8oxt-n-SJclkCVpO8mBniTHW1Rhejr6Sei69AAQ/edit?gid=0#gid=0) — live beta metrics
 
 ---
@@ -104,7 +104,7 @@ Last player alive → Vault distributes prize pool → On-chain payout tx
 |:---|:---|
 | Beta phase | Closed beta (waitlist open) |
 | Network | Stellar Mainnet & Testnet |
-| On-chain payments processed | 120+ |
+| On-chain payments processed | 468+ |
 | Room settlement | Verified via Horizon API |
 | Realtime sync | Supabase Realtime |
 
