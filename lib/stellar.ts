@@ -38,9 +38,9 @@ export async function verifyBuyInTransaction(
 
     // 2. Fetch transaction operations
     const opsPage = await server.operations().forTransaction(txHash).call()
-    
+
     // 3. Find the payment operation from player to vault
-    const paymentOp = opsPage.records.find(op => 
+    const paymentOp = opsPage.records.find(op =>
       op.type === 'payment' &&
       op.to === vaultAddress &&
       op.from === playerAddress &&
@@ -111,7 +111,7 @@ export async function sendPayout(targetAddress: string, amount: string): Promise
 
     // 1. Load vault account sequence
     const sourceAccount = await server.loadAccount(vaultAddress)
-    
+
     // 2. Fetch current base fee
     const fee = await server.fetchBaseFee()
 
@@ -133,7 +133,7 @@ export async function sendPayout(targetAddress: string, amount: string): Promise
     // 4. Sign and submit
     tx.sign(pair)
     const response = await server.submitTransaction(tx)
-    
+
     console.log(`Payout transaction successful. Hash: ${response.hash}`)
     return response.hash
   } catch (err) {

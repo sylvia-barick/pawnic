@@ -120,9 +120,9 @@ export async function joinRoom(
     .maybeSingle()
 
   if (!existing) {
-    // 1. Verify that the user-provided buy-in matches the room's set buy-in
-    if (Number(buyInXlm) !== Number(room.buy_in)) {
-      return { error: `Mismatched buy-in amount. This room requires ${room.buy_in} XLM, but client provided ${buyInXlm} XLM.` }
+    // 1. Verify that the user-provided buy-in is at least the minimum allowed buy-in
+    if (Number(buyInXlm) < 0.1) {
+      return { error: 'Minimum buy-in is 0.1 XLM.' }
     }
 
     // 2. Prevent transaction replay attacks: check if txHash was already processed

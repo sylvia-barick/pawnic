@@ -229,8 +229,8 @@ export default function LandingPage() {
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-4 text-xs font-display font-black tracking-[0.2em] uppercase transition-all ${tab === t
-                  ? 'text-[#FF007F] border-b-2 border-[#FF007F] bg-white/2'
-                  : 'text-muted-foreground hover:text-foreground'
+                ? 'text-[#FF007F] border-b-2 border-[#FF007F] bg-white/2'
+                : 'text-muted-foreground hover:text-foreground'
                 }`}
             >
               {t === 'create' ? 'Create Room' : 'Join Room'}
@@ -279,8 +279,8 @@ export default function LandingPage() {
                   key={a}
                   onClick={() => setAvatar(a)}
                   className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all border overflow-hidden ${avatar === a
-                      ? 'border-[#FF007F] bg-[#FF007F]/10 scale-105 shadow-[0_0_10px_rgba(255,0,127,0.25)]'
-                      : 'border-border/60 bg-white/2 hover:border-white/20'
+                    ? 'border-[#FF007F] bg-[#FF007F]/10 scale-105 shadow-[0_0_10px_rgba(255,0,127,0.25)]'
+                    : 'border-border/60 bg-white/2 hover:border-white/20'
                     }`}
                 >
                   {a.endsWith('.png') ? (
