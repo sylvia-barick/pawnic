@@ -227,7 +227,7 @@ We combine specialized Web3 engineering with technical go-to-market execution.
 Full-stack Web3 engineer specializing in smart contracts and decentralized applications. Sylvia handles the core on-chain development, session synchronization, and smart protocol architecture for PAWnic.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Sylvia%20Barick-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/sylvia-barick-081651321/)
-[![X](https://img.shields.io/badge/X-@5__barick-000000?style=flat-square&logo=x)](https://x.com/5_barick)
+[![X](https://img.shields.io/badge/X-@Sylviabarick-000000?style=flat-square&logo=x)](https://x.com/Sylviabarick)
 [![GitHub](https://img.shields.io/badge/GitHub-sylvia--barick-181717?style=flat-square&logo=github)](https://github.com/sylvia-barick)
 
 ### Debojyoti De Majumder — GTM & Marketing
