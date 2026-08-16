@@ -74,8 +74,8 @@ Last player alive → Vault distributes prize pool → On-chain payout tx
 - 🔗 [Mainnet Vault on Stellar Expert](https://stellar.expert/explorer/public/account/GD334OCQCGC4SFDUHYH35SC3B4UNHSQNYFUK4OMFQ7J5JHFJVIE6KOWS) — 50+ 
 - 🔗 [Testnet Vault on Stellar Expert](https://stellar.expert/explorer/testnet/account/GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT) — 1000+ processed testnet payments
 - 🔗 [Twitter founder video](https://x.com/pawwwnic/status/2074731868948504729?s=20)
-- 📊 [User Payments Sheet](https://docs.google.com/spreadsheets/d/1AxP313dKcSFu4aGm0JQNvU9PDAIiJotYvitt_LZvKWM/edit?usp=sharing) — live beta metrics
-
+- 📊 [User Payments Sheet(testnet)](https://docs.google.com/spreadsheets/d/1AxP313dKcSFu4aGm0JQNvU9PDAIiJotYvitt_LZvKWM/edit?usp=sharing) — live beta metrics (testnet)
+- 📊 [User Payments Sheet(mainnet)](https://docs.google.com/spreadsheets/d/1daEdt-Dwan7vg9xfvMtmkzUye_mhFYh7S-mYuYtvx8g/edit?usp=sharing) — live beta metrics (mainnet)
 ---
 
 ## Screenshots
