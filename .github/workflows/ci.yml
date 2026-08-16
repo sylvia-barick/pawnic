@@ -1,0 +1,38 @@
+name: PAWnic CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run ESLint Check
+      run: npm run lint
+
+    - name: Run TypeScript Verification
+      run: npx tsc --noEmit
+
+    - name: Attempt Next.js Build
+      run: npm run build
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://mockdburl.supabase.co' }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key' }}
+        NEXT_PUBLIC_STELLAR_VAULT_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STELLAR_VAULT_PUBLIC_KEY || 'GBNOTQMRR5OSU2R3ARUKFM3H6UGQXRPJ5OKSJ4Z7GVG45XXL6E6HOILT' }}
+        STELLAR_VAULT_SECRET_KEY: ${{ secrets.STELLAR_VAULT_SECRET_KEY || 'SBAAAAAABBBBBBCCCCCCDDDDDDEEEEEEFFFFFFGGGGGGHHHHHHIIIIIIJJ' }}
