@@ -18,6 +18,12 @@
 **PAWnic** is a real-time multiplayer party game where players pass a neon cat like a hot potato. Miss your pass window, and you explode. Last player standing takes the prize pool — settled on-chain, instantly.
 
 >  **Currently available on Stellar Mainnet and Testnet.**
+ ##  Live Demo
+
+| Network | Link |
+|---------|------|
+|  **Mainnet** | [Launch PAWnic Mainnet](https://pawnicmainnet.djyo.tech/) |
+|  **Testnet** | [Launch PAWnic Testnet](https://pawnic.djyo.tech/) |
 
 ---
 
